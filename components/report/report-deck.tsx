@@ -127,21 +127,21 @@ function Toolbar({ firm, report, shareId }: { firm: Firm; report: Report; shareI
 
   return (
     <div className="flex items-center justify-center gap-2">
-      <Button variant="outline" size="sm" className="bg-muted hover:bg-muted/70" onClick={onRegenerate}>
+      <Button variant="outline" size="sm" className="border-transparent bg-[#DBEAFE] text-[#1D4ED8] hover:bg-[#BFDBFE]" onClick={onRegenerate}>
         <RefreshCw className="h-4 w-4" />
         Regenerate
       </Button>
       {shareId && (
-        <Button variant="outline" size="sm" className="bg-muted hover:bg-muted/70" onClick={onCopy}>
+        <Button variant="outline" size="sm" className="border-transparent bg-[#FEF9C3] text-[#854D0E] hover:bg-[#FEF08A]" onClick={onCopy}>
           {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
           {copied ? "Copied" : "Copy share link"}
         </Button>
       )}
-      <Button variant="outline" size="sm" className="bg-muted hover:bg-muted/70" onClick={onExport}>
+      <Button variant="outline" size="sm" className="border-transparent bg-[#FEE2E2] text-[#B91C1C] hover:bg-[#FECACA]" onClick={onExport}>
         <Download className="h-4 w-4" />
         Export deck (PDF)
       </Button>
-      <Button variant="outline" size="sm" className="border-transparent bg-[#16A34A] text-white hover:bg-[#15803D]" onClick={onCsv}>
+      <Button variant="outline" size="sm" className="border-transparent bg-[#DCFCE7] text-[#15803D] hover:bg-[#BBF7D0]" onClick={onCsv}>
         <FileSpreadsheet className="h-4 w-4" />
         Download CSV
       </Button>

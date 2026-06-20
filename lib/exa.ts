@@ -322,12 +322,12 @@ export async function fetchCompanyIntel(companyName: string): Promise<CompanyInt
     const r = await withRetry(
       () =>
         exa().search(
-          `${companyName}: total funding raised, employee count, year founded, headquarters, and latest news`,
+          `${companyName}: total funding raised, employee count, year founded, headquarters, parent company or owner (acquired by / subsidiary of), and latest news`,
           {
             type: "auto",
             numResults: 4,
             text: { maxCharacters: 1200 },
-            highlights: { numSentences: 2, highlightsPerUrl: 2, query: `${companyName} funding employees founded headquarters` },
+            highlights: { numSentences: 2, highlightsPerUrl: 2, query: `${companyName} funding employees founded headquarters parent company owner acquired by` },
           } as Parameters<Exa["search"]>[1],
         ),
       { label: `exa.intel ${companyName}`, retries: 1, baseMs: 500 },

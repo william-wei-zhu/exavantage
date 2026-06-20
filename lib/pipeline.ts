@@ -156,6 +156,56 @@ Only output the JSON.`,
   }
 }
 
+const INDEPENDENCE_SCHEMA: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    ownedDomains: { type: Type.ARRAY, items: { type: Type.STRING } },
+  },
+  required: ["ownedDomains"],
+};
+
+/**
+ * Drop candidates that are NOT independently acquirable because they are already
+ * owned: either a sub-brand / division of a large parent corporation (e.g. Comfort
+ * Inn -> Choice Hotels) or the platform company itself / a known subsidiary of it.
+ * A buy-and-build needs companies you can actually buy, not brands already rolled
+ * up inside a major chain. Uses Gemini world knowledge over the candidate names;
+ * conservative (keeps when unsure) and falls back to the full set if it over-filters.
+ */
+async function filterIndependent(
+  seedLabel: string,
+  anchor: { name: string; domain: string } | undefined,
+  hits: SearchHit[],
+): Promise<SearchHit[]> {
+  if (hits.length <= 5) return hits;
+  try {
+    const anchorLine = anchor
+      ? `The platform company is ${anchor.name} (${anchor.domain}). Also flag the platform itself and any company you know to be a subsidiary or sister brand of it.`
+      : "";
+    const { ownedDomains } = await generateJSON<{ ownedDomains: string[] }>({
+      prompt: `Research target: ${seedLabel}
+${anchorLine}
+
+Below are candidate acquisition targets for a private-equity buy-and-build (roll-up). A target is only useful if it is an INDEPENDENT company that could actually be bought on its own. Return "ownedDomains": the exact domains of candidates that are NOT independently acquirable because they are already owned, i.e. a brand, sub-brand, division, or subsidiary of a larger parent corporation (for example "Comfort Inn" belongs to Choice Hotels; "Radisson" belongs to a large hotel group). Judge by ownership, not by name similarity. Be conservative: only list a domain when you are reasonably confident it is owned by a larger parent; when unsure, leave it OUT (keep it). Most genuinely independent companies should NOT appear.
+
+Candidates:
+${candidateBlock(hits)}
+
+Only output the JSON.`,
+      schema: INDEPENDENCE_SCHEMA,
+      system:
+        "You are a precise M&A analyst screening acquisition targets for independence. Flag only companies that are already owned by a larger parent corporation; an independent company is acquirable and must be kept.",
+      temperature: 0,
+    });
+    const drop = new Set(ownedDomains.map((d) => normalizeDomain(d)));
+    const filtered = hits.filter((h) => !drop.has(h.domain));
+    // If the gate would strip the set down too far, keep the original (likely over-eager).
+    return filtered.length >= 3 ? filtered : hits;
+  } catch {
+    return hits;
+  }
+}
+
 // ---- clustering + tear-sheet synthesis (one holistic Gemini pass) ----
 
 const LANDSCAPE_SCHEMA: Schema = {
@@ -294,20 +344,26 @@ const QUANT_SCHEMA: Schema = {
           stage: { type: Type.STRING },
           employees: { type: Type.STRING },
           region: { type: Type.STRING },
+          parentCompany: { type: Type.STRING },
         },
-        required: ["domain", "founded", "funding", "stage", "employees", "region"],
+        required: ["domain", "founded", "funding", "stage", "employees", "region", "parentCompany"],
       },
     },
   },
   required: ["companies"],
 };
 
-type QuantRow = { domain: string; founded: string; funding: string; stage: string; employees: string; region: string };
+type QuantRow = { domain: string; founded: string; funding: string; stage: string; employees: string; region: string; parentCompany: string };
+
+/** Quant facts plus a transient ownership read (parentCompany is not persisted on Company). */
+type QuantValue = Pick<Company, "foundedYear" | "funding" | "stage" | "employees" | "region"> & {
+  parentCompany?: string;
+};
 
 /** Extract structured quant for many companies in one call, evidence-only. */
 async function extractQuant(
   facts: { domain: string; name: string; text: string }[],
-): Promise<Map<string, Pick<Company, "foundedYear" | "funding" | "stage" | "employees" | "region">>> {
+): Promise<Map<string, QuantValue>> {
   const usable = facts.filter((f) => f.text.trim().length > 0);
   if (usable.length === 0) return new Map();
   try {
@@ -317,7 +373,7 @@ async function extractQuant(
     const out = await generateJSON<{ companies: QuantRow[] }>({
       prompt: `For each company below, extract quantitative facts ONLY where they appear in that company's text. Never guess or invent numbers; use "" for anything not clearly stated.
 
-For each: "domain" (copy exactly), "founded" (4-digit year), "funding" (total raised, short string like "$120M" or "$1.2B"), "stage" (e.g. "Seed", "Series B", "Public", "Bootstrapped", "Acquired"), "employees" (a range like "11-50", "201-500"), "region" (HQ city/country).
+For each: "domain" (copy exactly), "founded" (4-digit year), "funding" (total raised, short string like "$120M" or "$1.2B"), "stage" (e.g. "Seed", "Series B", "Public", "Bootstrapped", "Acquired"), "employees" (a range like "11-50", "201-500"), "region" (HQ city/country), "parentCompany" (if the text states this company is owned by / a subsidiary of / part of / a brand of a larger parent corporation, copy the parent's name exactly; otherwise "").
 
 ${block}
 
@@ -327,7 +383,7 @@ Only output the JSON.`,
         "You extract company financials from provided text for a research analyst. Accuracy over completeness: leave a field empty rather than guess.",
       temperature: 0,
     });
-    const map = new Map<string, Pick<Company, "foundedYear" | "funding" | "stage" | "employees" | "region">>();
+    const map = new Map<string, QuantValue>();
     for (const row of out.companies ?? []) {
       const d = normalizeDomain(row.domain);
       const fy = parseInt(row.founded, 10);
@@ -337,6 +393,7 @@ Only output the JSON.`,
         stage: clean(row.stage),
         employees: clean(row.employees),
         region: clean(row.region),
+        parentCompany: clean(row.parentCompany),
       });
     }
     return map;
@@ -654,7 +711,15 @@ export async function streamReport(
     seedContext,
     rawHits,
   );
-  let hits = relevant.slice(0, MAX_COMPANIES);
+  // Independence gate: drop candidates already owned by a larger parent (sub-brands
+  // of a major chain aren't acquirable on their own), plus the anchor / its subsidiaries.
+  await emit({ type: "progress", phase: "Checking targets are independently acquirable" });
+  const independent = await filterIndependent(
+    mode === "company" ? (anchor?.name ?? restated) : restated,
+    anchor,
+    relevant,
+  );
+  let hits = independent.slice(0, MAX_COMPANIES);
 
   if (hits.length === 0) {
     await emit({
@@ -719,10 +784,13 @@ export async function streamReport(
     intel.map(({ company, intel }) => ({ domain: company.domain, name: company.name, text: intel.facts })),
   );
 
-  const enriched = await mapLimit(intel, 8, async ({ company: c, intel: info }) => {
+  const enrichedRaw = await mapLimit(intel, 8, async ({ company: c, intel: info }) => {
     // Prefer freshly-extracted quant; fall back to anything in the discovery pass.
     const fromClustering = toQuant(c);
-    const fromIntel = quantMap.get(normalizeDomain(c.domain)) ?? {};
+    const fromIntel: QuantValue = quantMap.get(normalizeDomain(c.domain)) ?? {};
+    // Evidence-grounded independence check: if the fetched text shows a larger parent
+    // owns this company, it isn't an acquirable add-on — drop it before it streams.
+    if (fromIntel.parentCompany) return null;
     const company: Company = {
       name: c.name,
       domain: c.domain,
@@ -742,6 +810,11 @@ export async function streamReport(
     await emit({ type: "company", company });
     return company;
   });
+  const enriched = enrichedRaw.filter((c): c is Company => c !== null);
+
+  // Prune segments left empty after dropping owned companies, so the deck has no hollow slide.
+  const survivingSegments = new Set(enriched.map((c) => c.segment));
+  land.segments = land.segments.filter((s) => survivingSegments.has(s.label));
 
   // 5. Emerging subset.
   const emerging = enriched.filter((c) => c.emerging);
