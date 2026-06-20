@@ -32,7 +32,8 @@ export function ExaHeader() {
 
         <Link
           href="/about"
-          className="rounded px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-[#f5f5f5]"
+          className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+          style={{ background: "#53284F" }}
         >
           How it works
         </Link>

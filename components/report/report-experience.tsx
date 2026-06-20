@@ -63,10 +63,10 @@ export function ReportExperience() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Enter a platform company, e.g. ServiceTitan"
+                placeholder="Enter one company. We find the smaller ones worth acquiring around it."
                 maxLength={160}
                 disabled={busy}
-                className="h-14 w-full rounded-full border border-input bg-background pl-12 pr-4 text-base outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 disabled:opacity-60"
+                className="h-14 w-full rounded-lg border border-input bg-background pl-12 pr-4 text-base outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 disabled:opacity-60"
                 style={{ ["--tw-ring-color" as string]: `${firm.theme.primary}55` }}
               />
             </div>
@@ -74,7 +74,7 @@ export function ReportExperience() {
               type="submit"
               size="lg"
               disabled={busy || input.trim().length < 2}
-              className="h-14 rounded-full px-7 text-white"
+              className="h-14 rounded-lg px-7 text-white"
               style={{ background: busy ? undefined : firm.theme.primary }}
             >
               {busy ? (
@@ -90,11 +90,6 @@ export function ReportExperience() {
               )}
             </Button>
           </div>
-          {showInputs && (
-            <p className="px-1 text-[13px] text-muted-foreground">
-              Enter one company. We find the smaller ones worth acquiring around it.
-            </p>
-          )}
         </form>
 
         {showInputs && (
