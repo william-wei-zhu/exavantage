@@ -521,21 +521,22 @@ ${coBlock}
 Produce a structured recommendation. Rules:
 - Base every claim ONLY on the targets / segments / market above. NEVER invent revenue, valuations, multiples, growth rates, or market-share percentages. Recommendation and conviction are your judgment.
 - NUMBERS: use compact notation only ($150B, not "150 billion dollar"). Any market-size figure must be the EXACT cited stat string above, or omitted. No other dollar figures.
-- "recommendation": ONE punchy sentence, max 22 words. State the NON-OBVIOUS wedge (the specific consolidation insight, e.g. which sub-scale point-solutions the platform cross-sells into), not the generic category.
+- LENGTH IS A HARD CONSTRAINT: these render on fixed-size slides, so every field MUST stay within its stated word cap. Write tight, complete thoughts; never trail off. If you cannot fit it, cut detail, do not exceed the cap.
+- "recommendation": ONE punchy sentence, max 20 words. State the NON-OBVIOUS wedge (the specific consolidation insight, e.g. which sub-scale point-solutions the platform cross-sells into), not the generic category.
 - "conviction": High, Medium, or Exploratory.
-- "whyNow": exactly 3 grounded catalysts / tailwinds (founder succession, technology forcing scale, end-market demand). Briefly note if other consolidators are already active.
-- "fragmentation": one evidence sentence from the SET (no single name dominates these N; no scaled consolidator; many sub-scale / founder-owned).
-- "segmentReads": for EACH sub-segment above, a one-line consolidation read and a "rank" (1 = most attractive to start).
-- "beachhead": which sub-segment to start in and why (one line).
-- "anchor": the platform candidate. Be REALISTIC about its role: if the input is a large/public company, frame it as "back a [name]-like scaled player" or "[name] as the consolidation vehicle", not "acquire [name]". "name", "why" it anchors, what it "brings", what it "needs".
-- "targets": EVERY company above, each with its exact "domain", a "tier" (1 = call now, 2 = next, 3 = watch), a one-line "whyCall", and an "angle" GROUNDED in that company's own data above (e.g. "founded 2004, no disclosed funding, ~50-200 staff -> likely founder-owned succession seller"; "sub-scale tuck-in adding [capability]"). Reserve tier 1 for the best 3 to 5 fits.
-- "valueLevers": 3 to 4 levers SPECIFIC to this platform and these sub-segments, naming the platform's capabilities and the segment names (e.g. "cross-sell [platform]'s payments module into acquired [segment] bases"; "consolidate overlapping [segment] tools"). Include multiple arbitrage (buy sub-scale below the platform's exit multiple) as one lever, stated qualitatively.
-- "edge": one line turning off-database / proprietary sourcing into return logic (off-auction, lower entry multiples, protected returns).
-- "risks": 2 to 3 specific things to diligence or what could kill it (e.g. saturated TAM, integration across codebases, competing buyers bidding up quality assets).
-- "firstCalls": the top 3 to 5 names to approach first, each with a one-line "why".
-- "sequencing": one line on order (anchor first, then which add-ons).
-- "ask": the concrete decision requested of the investment committee.
-- "takeaways": one crisp CONCLUSION line for each slide key (whyNow, thesis, where, anchor, targets, value, edge, play). Each is a so-what a partner acts on, max ~16 words, not a restatement of the slide title.
+- "whyNow": exactly 3 grounded catalysts / tailwinds (founder succession, technology forcing scale, end-market demand), each a complete thought, max 12 words each. Briefly note if other consolidators are already active.
+- "fragmentation": one evidence sentence from the SET (no single name dominates these N; no scaled consolidator; many sub-scale / founder-owned), max 24 words.
+- "segmentReads": for EACH sub-segment above, a one-line consolidation "read" (max 12 words) and a "rank" (1 = most attractive to start).
+- "beachhead": which sub-segment to start in and why (one line, max 16 words).
+- "anchor": the platform candidate. Be REALISTIC about its role: if the input is a large/public company, frame it as "back a [name]-like scaled player" or "[name] as the consolidation vehicle", not "acquire [name]". "name", "why" it anchors (max 24 words), what it "brings" (max 18 words), what it "needs" (max 18 words).
+- "targets": EVERY company above, each with its exact "domain", a "tier" (1 = call now, 2 = next, 3 = watch), a one-line "whyCall" (max 14 words), and an "angle" (max 8 words) GROUNDED in that company's own data above (e.g. "founded 2004, no disclosed funding, ~50-200 staff -> likely founder-owned succession seller"; "sub-scale tuck-in adding [capability]"). Reserve tier 1 for the best 3 to 5 fits.
+- "valueLevers": 3 to 4 levers SPECIFIC to this platform and these sub-segments (max 18 words each), naming the platform's capabilities and the segment names (e.g. "cross-sell [platform]'s payments module into acquired [segment] bases"; "consolidate overlapping [segment] tools"). Include multiple arbitrage (buy sub-scale below the platform's exit multiple) as one lever, stated qualitatively.
+- "edge": one line turning off-database / proprietary sourcing into return logic (off-auction, lower entry multiples, protected returns), max 22 words.
+- "risks": 2 to 3 specific things to diligence or what could kill it (max 14 words each; e.g. saturated TAM, integration across codebases, competing buyers bidding up quality assets).
+- "firstCalls": the top 3 to 5 names to approach first, each with a one-line "why" (max 8 words).
+- "sequencing": one line on order (anchor first, then which add-ons), max 14 words.
+- "ask": the concrete decision requested of the investment committee, max 18 words.
+- "takeaways": one crisp CONCLUSION line for each slide key (whyNow, thesis, where, anchor, targets, value, edge, play). Each is a so-what a partner acts on, max 14 words, not a restatement of the slide title.
 Only output the JSON.`,
     schema: DEAL_THESIS_SCHEMA,
     system:
