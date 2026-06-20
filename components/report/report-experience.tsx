@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, ListChecks, Loader2, Search, Telescope, TrendingUp } from "lucide-react";
+import { ArrowRight, Check, Loader2, Search } from "lucide-react";
 import { ReportDeck } from "./report-deck";
 import { BuildingDeck } from "./building-deck";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,6 @@ import { track } from "@/lib/analytics";
 // proprietary add-on universe as a KKR-branded deck.
 const firm = firmById(DEFAULT_FIRM_ID);
 const lens = lensFor(firm.lens);
-
-const BENEFITS = [
-  { icon: Telescope, text: "Finds the small, founder-owned companies no database lists." },
-  { icon: TrendingUp, text: "Spots who's growing right now, so you know who to call first." },
-  { icon: ListChecks, text: "Hands back a ranked shortlist, ready for the deal meeting." },
-];
 
 export function ReportExperience() {
   const [input, setInput] = useState("");
@@ -95,44 +89,23 @@ export function ReportExperience() {
         </form>
 
         {showInputs && (
-          <>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-muted-foreground">Try a platform:</span>
-              {lens.examples.map((ex) => (
-                <button
-                  key={ex.query}
-                  type="button"
-                  onClick={() => {
-                    setInput(ex.query);
-                    submit(ex.query);
-                  }}
-                  className="rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors"
-                  style={{ background: `${firm.theme.primary}12`, color: firm.theme.primary }}
-                >
-                  {ex.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <p className="text-[15px] font-semibold" style={{ color: firm.theme.primary }}>
-                PitchBook shows who's already been found. Exa finds the rest.
-              </p>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {BENEFITS.map((b) => (
-                  <div key={b.text} className="rounded-xl border border-border bg-card p-4">
-                    <span
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full"
-                      style={{ background: `${firm.theme.accent}1a` }}
-                    >
-                      <b.icon className="h-[18px] w-[18px]" style={{ color: firm.theme.accent }} strokeWidth={2} />
-                    </span>
-                    <p className="mt-2.5 text-[13.5px] leading-snug text-foreground/80">{b.text}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-muted-foreground">Try a platform:</span>
+            {lens.examples.map((ex) => (
+              <button
+                key={ex.query}
+                type="button"
+                onClick={() => {
+                  setInput(ex.query);
+                  submit(ex.query);
+                }}
+                className="rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors"
+                style={{ background: `${firm.theme.primary}12`, color: firm.theme.primary }}
+              >
+                {ex.label}
+              </button>
+            ))}
+          </div>
         )}
       </motion.div>
 
