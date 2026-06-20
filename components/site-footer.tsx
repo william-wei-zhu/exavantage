@@ -11,7 +11,7 @@ export function SiteFooter() {
       <div className="mx-auto flex max-w-[1040px] flex-col items-center justify-between gap-3 px-5 py-7 text-sm text-muted-foreground sm:flex-row md:px-6">
         <div className="flex items-center gap-4">
           <a
-            href="https://www.linkedin.com/in/william-wei-zhu/"
+            href="https://williamzhu.ai"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-foreground transition-colors hover:text-primary"
