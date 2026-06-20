@@ -36,7 +36,7 @@ export type LensCopy = {
   /** One line on what the desk gets. */
   jobShort: string;
   /** Tailored example platforms (company-only). */
-  examples: { label: string; query: string }[];
+  examples: { label: string; query: string; domain?: string }[];
   /** Hint shown under the input. */
   inputHint: string;
 };
@@ -67,11 +67,11 @@ export const LENSES: Record<LensId, LensCopy> = {
     jobShort:
       "Give us a platform company; we map its proprietary add-on universe for a buy-and-build.",
     examples: [
-      { label: "ServiceTitan", query: "ServiceTitan" },
-      { label: "Lululemon", query: "Lululemon" },
-      { label: "Sweetgreen", query: "Sweetgreen" },
-      { label: "Warby Parker", query: "Warby Parker" },
-      { label: "Procore", query: "Procore" },
+      { label: "Lululemon", query: "Lululemon", domain: "lululemon.com" },
+      { label: "Sweetgreen", query: "Sweetgreen", domain: "sweetgreen.com" },
+      { label: "Warby Parker", query: "Warby Parker", domain: "warbyparker.com" },
+      { label: "Glossier", query: "Glossier", domain: "glossier.com" },
+      { label: "Peloton", query: "Peloton", domain: "onepeloton.com" },
     ],
     inputHint: "Enter a platform company (e.g. ServiceTitan) and we map its add-on universe.",
   },

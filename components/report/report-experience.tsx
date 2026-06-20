@@ -11,6 +11,7 @@ import { DEFAULT_FIRM_ID, firmById } from "@/lib/firms";
 import { lensFor } from "@/lib/lenses";
 import { useReportStream, toReport } from "@/lib/use-report-stream";
 import { useFadeUpProps } from "@/lib/motion";
+import { faviconUrl } from "@/lib/util";
 import { track } from "@/lib/analytics";
 
 // The single KKR Deal Origination desk: enter a platform company, get its
@@ -94,7 +95,7 @@ export function ReportExperience() {
 
         {showInputs && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted-foreground">Start with:</span>
+            <span className="text-sm text-muted-foreground">Try:</span>
             {lens.examples.map((ex) => (
               <button
                 key={ex.query}
@@ -103,9 +104,16 @@ export function ReportExperience() {
                   setInput(ex.query);
                   submit(ex.query);
                 }}
-                className="rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors"
-                style={{ background: `${firm.theme.primary}12`, color: firm.theme.primary }}
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-[#53284F]/40 hover:bg-[#53284F]/[0.04]"
               >
+                {ex.domain && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={faviconUrl(ex.domain, 64)}
+                    alt=""
+                    className="h-[18px] w-[18px] rounded-[3px]"
+                  />
+                )}
                 {ex.label}
               </button>
             ))}
