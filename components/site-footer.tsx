@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ExaMark } from "@/components/exa-logo";
 
 /**
  * Minimal footer: just attribution and the Exa credit, plus the two required
@@ -22,9 +23,10 @@ export function SiteFooter() {
             href="https://exa.ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="transition-colors hover:text-primary"
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
           >
             Powered by Exa
+            <ExaMark className="h-4 w-auto" />
           </a>
         </div>
         <div className="flex items-center gap-4">
