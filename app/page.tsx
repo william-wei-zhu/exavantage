@@ -15,8 +15,8 @@ export default function Home() {
               <span className="italic" style={{ color: "#53284F" }}>every deal.</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
-              KKR grows businesses by acquiring the smaller players around them. Exa finds the hidden
-              ones not in PitchBook, so the deal team can prioritize the best acquisition targets.
+              KKR grows a company by absorbing the smaller players around it for scale. Exa finds the
+              hidden ones not in PitchBook, so the deal team knows who to buy.
             </p>
           </div>
 
