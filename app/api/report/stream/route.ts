@@ -4,7 +4,9 @@ import { AtCapacityError, overDailyBudget, recordReportBuild } from "@/lib/budge
 import type { StreamEvent } from "@/lib/types";
 
 export const runtime = "nodejs";
-export const maxDuration = 120;
+// The deal-thesis Gemini pass can occasionally run long; allow the full Vercel
+// ceiling (300s on all plans) so a slow build finishes instead of timing out.
+export const maxDuration = 300;
 
 // Each build fans out to ~15-25 paid Exa/Gemini calls, so this route is the
 // expensive one: per-IP limited and gated by a global daily kill switch.
