@@ -5,7 +5,8 @@
 A partner-grade private-equity deal-origination tool, built on [Exa](https://exa.ai) and Google
 Gemini. Enter a **platform company** and Exa Vantage returns a **9-slide, KKR-branded slide deck**
 that recommends a buy-and-build (roll-up): a sized opportunity, the tiered add-on targets, the
-value-creation thesis, the risks, and a concrete ask. Shareable by link, exportable to PDF.
+value-creation thesis, the risks, and a concrete ask. Shareable by link, exportable to PDF, and
+downloadable as a CSV of the full company universe.
 
 Live at **[exavantage.com](https://exavantage.com)**.
 
@@ -20,23 +21,27 @@ recommendation a partner can act on.
 
 Each slide leads with an action-title conclusion (the takeaway), MBB/PE style:
 
-1. **Recommendation** — the verdict, conviction, three proof stats, and the ask.
-2. **Why Now** — a cited market-size stat (with source + confidence) and the catalysts.
-3. **The Fragmentation Thesis** — evidence the market is consolidatable.
-4. **Where to Win** — sub-segments ranked, the beachhead named.
-5. **The Anchor** — the platform candidate to build around.
-6. **Priority Targets** — Tier 1 / 2 / Watch, each with a why-call, an angle, and grounded evidence.
-7. **Value Creation** — the levers, specific to this platform (multiple arbitrage, cross-sell, ...).
-8. **The Exa Edge** — off-database finds (price) and readiness signals (timing).
-9. **The Play** — first calls, sequencing, risks, and the ask.
+1. **Recommendation**: the verdict, conviction, three proof stats, and the ask.
+2. **Why Now**: a cited market-size stat (with source + confidence) and the catalysts.
+3. **The Fragmentation Thesis**: evidence the market is consolidatable.
+4. **Where to Win**: sub-segments ranked, the beachhead named.
+5. **The Anchor**: the platform candidate to build around.
+6. **Priority Targets**: Tier 1 / 2 / Watch, each with a why-call, an angle, and grounded evidence.
+7. **Value Creation**: the levers, specific to this platform (multiple arbitrage, cross-sell, ...).
+8. **The Exa Edge**: off-database finds (price) and readiness signals (timing).
+9. **The Play**: first calls, sequencing, risks, and the ask.
+
+Plus a **Full Universe** appendix: the entire discovered company set in a paginated table, so the
+deck's page count scales with the universe.
 
 ## How it works
 
 Resolve the input → discover with Exa `findSimilar` + neural search → a relevance gate drops
-name-collisions → an Exa Agent pass surfaces emerging names → Gemini clusters and writes tear sheets
-→ per-company Exa search pulls facts → one batched Gemini pass extracts quant (estimated, blank when
-unknown) → Exa pulls a cited market-size stat for the sector → one Gemini pass writes the strategic
-deal thesis. Results stream behind a build-progress view, save to Firestore, and reveal as a
+name-collisions → an independence gate drops companies already owned by a larger parent (sub-brands
+of a major chain aren't acquirable) → an Exa Agent pass surfaces emerging names → Gemini clusters and
+writes tear sheets → per-company Exa search pulls facts (and any that turn out to be owned are
+dropped here too) → one batched Gemini pass extracts quant (estimated, blank when unknown) → Exa
+pulls a cited market-size stat for the sector → one Gemini pass writes the strategic deal thesis. Results stream behind a build-progress view, save to Firestore, and reveal as a
 shareable `/r/[id]` deck.
 
 ## Stack
