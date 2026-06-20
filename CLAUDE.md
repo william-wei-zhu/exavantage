@@ -77,6 +77,19 @@ dense lists use `Favicon`. Other primitives in `bits.tsx` (`StatBox`, `HeaderBan
 `CompsTable`, `Ribbon`, `ConvictionBadge`, `TierBadge`, `SourceChip`, `ConfidenceChip`,
 `evidenceLine`). `Deck` is a carousel (prev/next, dots, keyboard; print = one slide per page).
 
+**In-slide card + box styling conventions:** segment/lever cards (`map-slide`, `value-slide`) use a
+clean **thin full-border card** (`rounded-xl border` at `${ink}14` on `paper`); color-coding is a small
+dot or numbered circle, **not** a colored top bar (the old `h-1.5` top-bar "top-bolded" style was
+retired as unrefined). The beachhead segment gets an aubergine ring instead of a bar. "Takeaway" call-out
+boxes (the cover's **The ask**, `signals-slide`'s **Why it matters**, `synthesis-slide`'s **The ask**)
+share **one light style**: `rounded-md` on `surface` with a `text-[10px]` uppercase **primary** kicker
+over a semibold ink body (no dark-aubergine filled boxes, which clipped at the frame edge). Because the
+frame is `overflow-hidden`, content-dense slides must budget vertical space: `signals-slide` drops the
+`intro` so its takeaway box fits. The deck action row (`report-deck.tsx`): **Download CSV is bright green
+(`#16A34A`)**; the other three (Regenerate / Copy share link / Export PDF) are consistent `outline` +
+`bg-muted`. `synthesis-slide` no longer renders the **Sequencing** line (redundant; the field stays in
+the data model). Homepage CTA reads **"Generate report"**.
+
 ## Loading + sharing
 
 The deck is **gated behind a build state** (`building-deck.tsx`): while the ~90s pipeline runs,

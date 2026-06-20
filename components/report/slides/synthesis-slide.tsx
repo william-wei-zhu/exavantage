@@ -38,19 +38,14 @@ export function SynthesisSlide({ report, firm, lens, page }: SlideProps & { page
               );
             })}
           </ol>
-          {thesis?.sequencing && (
-            <p className="mt-3 line-clamp-1 text-[12.5px] leading-snug" style={{ color: `${t.ink}99` }}>
-              <span className="font-semibold" style={{ color: t.primary }}>Sequencing: </span>{truncateWords(thesis.sequencing, 16)}
-            </p>
-          )}
         </div>
         <div>
           <HeaderBand title="Key risks · diligence" t={t} />
           <ul className="mt-3 space-y-2.5">
             {risks.map((r, i) => (
-              <li key={i} className="flex gap-2.5 text-[16px] leading-snug" style={{ color: `${t.ink}c8` }}>
+              <li key={i} className="flex gap-2.5 text-[15px] leading-snug" style={{ color: `${t.ink}c8` }}>
                 <span className="mt-0.5 shrink-0" style={{ color: t.gold }}>&#9650;</span>
-                <span className="line-clamp-2">{truncateWords(r, 18)}</span>
+                <span className="line-clamp-3">{truncateWords(r, 40)}</span>
               </li>
             ))}
           </ul>
@@ -58,9 +53,9 @@ export function SynthesisSlide({ report, firm, lens, page }: SlideProps & { page
       </div>
 
       {thesis?.ask && (
-        <div className="mt-5 rounded-md px-5 py-3 text-white" style={{ background: t.primary, ...PRINT_EXACT }}>
-          <span className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-80">The ask</span>
-          <p className="mt-0.5 line-clamp-2 text-[15px] font-semibold leading-snug">{thesis.ask}</p>
+        <div className="mt-5 rounded-md p-4" style={{ background: t.surface, ...PRINT_EXACT }}>
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: t.primary }}>The ask</span>
+          <p className="mt-1 line-clamp-3 text-[15px] font-semibold leading-snug" style={{ color: `${t.ink}d8` }}>{thesis.ask}</p>
         </div>
       )}
     </SlideFrame>

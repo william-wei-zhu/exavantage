@@ -26,12 +26,9 @@ export function ValueSlide({ report, firm, lens, page }: SlideProps & { page?: P
             levers.slice(0, 4).map((l, i) => {
               const c = colors[i % colors.length];
               return (
-                <div key={i} className="overflow-hidden rounded-xl" style={{ background: t.surface, ...PRINT_EXACT }}>
-                  <div className="h-1.5 w-full" style={{ background: c, ...PRINT_EXACT }} />
-                  <div className="p-4">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full text-[15px] font-bold text-white" style={{ background: c, ...PRINT_EXACT }}>{i + 1}</div>
-                    <p className="mt-3 line-clamp-3 text-[15px] leading-snug" style={{ color: `${t.ink}d0` }}>{truncateWords(l, 24)}</p>
-                  </div>
+                <div key={i} className="rounded-xl border p-4" style={{ background: t.paper, borderColor: `${t.ink}14`, ...PRINT_EXACT }}>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full text-[15px] font-bold text-white" style={{ background: c, ...PRINT_EXACT }}>{i + 1}</div>
+                  <p className="mt-3 line-clamp-4 text-[15px] leading-relaxed" style={{ color: `${t.ink}d0` }}>{truncateWords(l, 30)}</p>
                 </div>
               );
             })

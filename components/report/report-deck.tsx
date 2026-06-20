@@ -127,21 +127,21 @@ function Toolbar({ firm, report, shareId }: { firm: Firm; report: Report; shareI
 
   return (
     <div className="flex items-center justify-center gap-2">
-      <Button variant="secondary" size="sm" onClick={onRegenerate}>
+      <Button variant="outline" size="sm" className="bg-muted hover:bg-muted/70" onClick={onRegenerate}>
         <RefreshCw className="h-4 w-4" />
         Regenerate
       </Button>
       {shareId && (
-        <Button variant="secondary" size="sm" onClick={onCopy}>
+        <Button variant="outline" size="sm" className="bg-muted hover:bg-muted/70" onClick={onCopy}>
           {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}
           {copied ? "Copied" : "Copy share link"}
         </Button>
       )}
-      <Button variant="outline" size="sm" onClick={onExport}>
+      <Button variant="outline" size="sm" className="bg-muted hover:bg-muted/70" onClick={onExport}>
         <Download className="h-4 w-4" />
         Export deck (PDF)
       </Button>
-      <Button variant="outline" size="sm" onClick={onCsv}>
+      <Button variant="outline" size="sm" className="border-transparent bg-[#16A34A] text-white hover:bg-[#15803D]" onClick={onCsv}>
         <FileSpreadsheet className="h-4 w-4" />
         Download CSV
       </Button>

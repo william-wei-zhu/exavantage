@@ -23,7 +23,7 @@ export function MapSlide({ report, firm, lens, page }: SlideProps & { page?: Pag
       page={page}
       note="Sub-segments ranked by consolidation attractiveness. Off-database targets marked with a teal dot."
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ordered.slice(0, 6).map((g, gi) => {
           const r = reads.get(g.segment.label);
           const beachhead = r?.rank === 1;
@@ -31,29 +31,32 @@ export function MapSlide({ report, firm, lens, page }: SlideProps & { page?: Pag
           return (
             <div
               key={g.segment.label}
-              className="overflow-hidden rounded-lg"
-              style={{ background: t.paper, boxShadow: beachhead ? `0 0 0 2px ${t.primary}` : `0 0 0 1px ${t.ink}1f`, ...PRINT_EXACT }}
+              className="rounded-xl border p-4"
+              style={{
+                background: t.paper,
+                borderColor: beachhead ? t.primary : `${t.ink}14`,
+                boxShadow: beachhead ? `0 0 0 1px ${t.primary}` : undefined,
+                ...PRINT_EXACT,
+              }}
             >
-              <div className="h-1.5 w-full" style={{ background: c, ...PRINT_EXACT }} />
-              <div className="p-3.5">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-[15px] font-bold leading-tight" style={{ fontFamily: t.headingFont, color: t.primary }}>{g.segment.label}</h3>
-                  {beachhead && (
-                    <span className="rounded-sm px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white" style={{ background: t.primary, ...PRINT_EXACT }}>Start here</span>
-                  )}
-                  <span className="ml-auto shrink-0 text-[13px] font-bold tabular-nums" style={{ color: c }}>{g.companies.length}</span>
-                </div>
-                <p className="mt-1 line-clamp-2 text-[13px] font-medium leading-snug" style={{ color: `${t.ink}c0` }}>{truncateWords(r?.read ?? g.segment.blurb, 15)}</p>
-                <ul className="mt-2.5 space-y-1">
-                  {g.companies.slice(0, 4).map((co) => (
-                    <li key={co.domain} className="flex items-center gap-2 text-[13px]">
-                      <Favicon domain={co.domain} size={14} />
-                      <span className="truncate font-medium">{co.name}</span>
-                      {co.emerging && <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: t.accent, ...PRINT_EXACT }} />}
-                    </li>
-                  ))}
-                </ul>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: c, ...PRINT_EXACT }} />
+                <h3 className="text-[15px] font-bold leading-tight" style={{ fontFamily: t.headingFont, color: t.primary }}>{g.segment.label}</h3>
+                {beachhead && (
+                  <span className="rounded-sm px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white" style={{ background: t.primary, ...PRINT_EXACT }}>Start here</span>
+                )}
+                <span className="ml-auto shrink-0 text-[13px] font-bold tabular-nums" style={{ color: c }}>{g.companies.length}</span>
               </div>
+              <p className="mt-2 line-clamp-6 text-[13px] font-medium leading-relaxed" style={{ color: `${t.ink}c8` }}>{truncateWords(r?.read ?? g.segment.blurb, 52)}</p>
+              <ul className="mt-3 space-y-1">
+                {g.companies.slice(0, 4).map((co) => (
+                  <li key={co.domain} className="flex items-center gap-2 text-[13px]">
+                    <Favicon domain={co.domain} size={14} />
+                    <span className="truncate font-medium">{co.name}</span>
+                    {co.emerging && <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: t.accent, ...PRINT_EXACT }} />}
+                  </li>
+                ))}
+              </ul>
             </div>
           );
         })}

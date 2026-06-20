@@ -17,7 +17,6 @@ export function SignalsSlide({ report, firm, lens, page }: SlideProps & { page?:
       lens={lens}
       kicker={lens.signalsTitle}
       title={thesis?.takeaways.edge ?? lens.signalsTitle}
-      intro={thesis?.edge}
       page={page}
       note="Off-database is inferred from low public-database coverage; these are the proprietary names Exa surfaced."
     >
@@ -38,8 +37,9 @@ export function SignalsSlide({ report, firm, lens, page }: SlideProps & { page?:
         )}
       </div>
 
-      <div className="mt-4 rounded-md px-4 py-3 text-white" style={{ background: t.primary, ...PRINT_EXACT }}>
-        <p className="text-[14px] font-semibold leading-snug">
+      <div className="mt-3.5 rounded-md p-4" style={{ background: t.surface, ...PRINT_EXACT }}>
+        <span className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: t.primary }}>Why it matters</span>
+        <p className="mt-1 text-[14px] font-semibold leading-snug" style={{ color: `${t.ink}d8` }}>
           Names the databases never indexed mean fewer bidders, off-auction conversations, and lower entry multiples.
         </p>
       </div>
