@@ -42,6 +42,55 @@ export async function saveReport(
   }
 }
 
+/** A lightweight listing for the homepage "Recent decks" gallery. */
+export type DeckListing = {
+  id: string;
+  name: string;
+  domain?: string;
+  marketStat?: string;
+  createdAt: number;
+};
+
+/**
+ * The most recent saved decks, deduped to one per company (latest wins), newest
+ * first. Powers the homepage gallery so visitors can browse real generated decks
+ * without waiting. Returns [] when Firestore isn't configured.
+ */
+export async function listRecentReports(limit = 9): Promise<DeckListing[]> {
+  const fs = db();
+  if (!fs) return [];
+  try {
+    const snap = await fs
+      .collection(COLLECTION)
+      .orderBy("createdAt", "desc")
+      .limit(48)
+      .select("query", "anchor", "marketContext", "createdAt")
+      .get();
+    const seen = new Set<string>();
+    const out: DeckListing[] = [];
+    for (const doc of snap.docs) {
+      const d = doc.data() as Partial<StoredReport>;
+      const name = (d.anchor?.name || d.query || "").trim();
+      if (!name) continue;
+      const key = name.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({
+        id: doc.id,
+        name,
+        domain: d.anchor?.domain,
+        marketStat: d.marketContext?.stat,
+        createdAt: d.createdAt ?? 0,
+      });
+      if (out.length >= limit) break;
+    }
+    return out;
+  } catch (e) {
+    console.error("[store] listRecentReports failed:", (e as Error)?.message);
+    return [];
+  }
+}
+
 /** Load a saved report by id, or null if missing / Firestore unavailable. */
 export async function getReport(id: string): Promise<StoredReport | null> {
   const fs = db();
