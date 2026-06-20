@@ -719,7 +719,7 @@ export async function streamReport(
     anchor,
     relevant,
   );
-  let hits = independent.slice(0, MAX_COMPANIES);
+  const hits = independent.slice(0, MAX_COMPANIES);
 
   if (hits.length === 0) {
     await emit({
@@ -812,9 +812,13 @@ export async function streamReport(
   });
   const enriched = enrichedRaw.filter((c): c is Company => c !== null);
 
-  // Prune segments left empty after dropping owned companies, so the deck has no hollow slide.
-  const survivingSegments = new Set(enriched.map((c) => c.segment));
-  land.segments = land.segments.filter((s) => survivingSegments.has(s.label));
+  // After dropping owned companies, scrub their domains from each segment and drop any
+  // segment left with nothing, so the thesis counts and the deck have no hollow entries.
+  const survivingDomains = new Set(enriched.map((c) => c.domain));
+  const survivingLabels = new Set(enriched.map((c) => c.segment));
+  land.segments = land.segments
+    .map((s) => ({ ...s, domains: s.domains.filter((d) => survivingDomains.has(d)) }))
+    .filter((s) => s.domains.length > 0 || survivingLabels.has(s.label));
 
   // 5. Emerging subset.
   const emerging = enriched.filter((c) => c.emerging);

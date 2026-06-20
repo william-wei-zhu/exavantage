@@ -27,8 +27,9 @@ Monolithic Next.js 16 on Vercel; "backend" = route handlers; Google Cloud provid
 
 ```
 route (Gemini) → discover (findSimilar + semantic search) → relevance gate (Gemini, drops
-  name-collisions) → emerging pass (Exa Agent, flagged) → cluster + tear sheets (Gemini) →
-  per-company intel (Exa text+highlights) → quant extraction (batched Gemini, evidence-only) →
+  name-collisions) → independence gate (Gemini, drops already-owned sub-brands) → emerging pass
+  (Exa Agent, flagged) → cluster + tear sheets (Gemini) → per-company intel (Exa text+highlights) →
+  quant extraction (batched Gemini, evidence-only, also reads parent-owner → drops owned) →
   market context (Exa, cited, SECTOR not company) + deal thesis (Gemini) → stream NDJSON →
   save to Firestore → fixed-frame KKR deck (16:9) → PDF
 ```
@@ -42,7 +43,8 @@ Key files:
 - `lib/pipeline.ts` — `streamReport(query, emit, {firmId})`. The two passes that drive the deck:
   `fetchMarketContext(sectorHint, excludeCompany)` (one cited market stat, evidence-only, searches
   the SECTOR and ignores the anchor's own revenue) and `analyzeOpportunity(...)` →
-  `DealThesis` (the strategic layer). Also `filterRelevant`, `synthesizeLandscape`, `extractQuant`.
+  `DealThesis` (the strategic layer). Also `filterRelevant`, `filterIndependent`,
+  `synthesizeLandscape`, `extractQuant`.
 - `lib/metrics.ts` — derived analytics over `Company[]`: `lensIndex` (Fragmentation Index),
   `opportunitySize` (the buildable prize), `ownershipSignal`, `visibleColumns` (hide sparse
   comps columns), stage mix, exa-edge count. Pure, no fabrication.
@@ -102,6 +104,16 @@ No invented revenue, valuations, multiples, growth rates, or market shares. The 
 Exa-cited with a confidence label (or omitted); per-company quant is estimated-from-web and labeled,
 blank when unknown; `ownershipSignal` and the indices are derived and labeled illustrative; the
 recommendation is framed as analyst judgment.
+
+**Independence gate (two layers, both in `lib/pipeline.ts`):** a roll-up target must be a company
+you can actually buy, so candidates already owned by a larger parent are dropped before they reach
+the deck. (1) `filterIndependent` runs right after the relevance gate and uses Gemini world
+knowledge to drop sub-brands of major chains and the anchor's own subsidiaries (e.g. Comfort Inn →
+Choice Hotels). (2) `extractQuant` additionally reads a `parentCompany` signal from the per-company
+Exa text (`fetchCompanyIntel`'s query asks for parent/owner); any company with a detected parent is
+dropped during enrichment (never streamed) and its now-empty segment is pruned. Both layers are
+conservative and fall back to keeping candidates on any error, so the run never breaks. `parentCompany`
+is transient (not persisted on `Company`).
 
 ## Marketing chrome (co-branded "Exa Vantage, for KKR")
 
