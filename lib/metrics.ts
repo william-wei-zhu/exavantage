@@ -69,62 +69,60 @@ export function quantCoverage(companies: Company[]) {
   };
 }
 
-/** The Exa-edge stat: how many discovered names are emerging / under-the-radar. */
+/** The Exa-edge stat: how many discovered names are off-database / proprietary
+ * (the under-the-radar long tail PitchBook / Sourcescrub never catalogued). */
 export function exaEdge(report: Report): { count: number; total: number; pct: number } {
   const total = report.companies.length;
   const count = report.companies.filter((c) => c.emerging).length;
   return { count, total, pct: total ? Math.round((100 * count) / total) : 0 };
 }
 
+/**
+ * A coarse, clearly-estimated ownership read for a target, inferred from the
+ * quant we have. No institutional funding + an established company reads as
+ * likely founder-owned (the sellable add-on); anything funded reads as backed.
+ * Labeled "(est.)" everywhere it shows — never asserted as fact.
+ */
+export function ownershipSignal(c: Company): string {
+  const stage = stageBucket(c.stage);
+  if (stage === "Public") return "Public";
+  const backed = Boolean(c.funding) || ["Seed", "Early", "Growth", "Late"].includes(stage);
+  if (backed) return "PE / VC-backed";
+  if (c.foundedYear && CURRENT_YEAR - c.foundedYear >= 8) return "Founder-owned";
+  return "Independent";
+}
+
 export type LensIndex = { score: number; label: string; caption: string };
 
 /**
- * A per-lens headline index (0-100), derived from the discovered set. Clearly an
- * illustrative composite, not a market figure. Mirrors skatepuck's normalized
- * scoring idea so each report has one quant "verdict" number.
+ * The deck's headline index (0-100), derived from the discovered set. For the KKR
+ * buy-and-build desk this is the Fragmentation Index: many independent, sub-scale
+ * names spread across many sub-segments = more roll-up runway. Clearly an
+ * illustrative composite, not a market figure.
  */
-export function lensIndex(lens: LensId, report: Report): LensIndex {
+export function lensIndex(_lens: LensId, report: Report): LensIndex {
   const cos = report.companies;
   const n = cos.length || 1;
   const share = (k: number) => Math.round((100 * k) / n);
 
-  if (lens === "ipo") {
-    // IPO readiness: weight late-stage / public + funding visibility + maturity.
-    const lateOrPublic = cos.filter((c) => ["Late", "Public", "Growth"].includes(stageBucket(c.stage))).length;
-    const funded = cos.filter((c) => c.funding).length;
-    const mature = cos.filter((c) => c.foundedYear && CURRENT_YEAR - c.foundedYear >= 7).length;
-    const score = Math.round(0.5 * share(lateOrPublic) + 0.3 * share(funded) + 0.2 * share(mature));
-    return {
-      score,
-      label: "IPO Readiness",
-      caption: `${lateOrPublic} of ${n} names read as growth, late-stage, or public.`,
-    };
-  }
-
-  if (lens === "buyout") {
-    // Fragmentation: many independent, sub-scale names = more roll-up runway.
-    const subScale = cos.filter((c) => {
-      const b = stageBucket(c.stage);
-      return b === "Seed" || b === "Early" || b === "Other" || b === "Growth";
-    }).length;
-    const segments = report.segments.length || 1;
-    // More companies spread across more segments => more fragmented.
-    const score = Math.min(100, Math.round(share(subScale) * 0.7 + Math.min(40, segments * 8)));
-    return {
-      score,
-      label: "Fragmentation Index",
-      caption: `${subScale} sub-scale targets across ${segments} sub-segments — buy-and-build runway.`,
-    };
-  }
-
-  // landscape / momentum: recent founding + emerging share + fresh signals.
-  const recent = recentlyFounded(cos, 6);
-  const emerging = cos.filter((c) => c.emerging).length;
-  const signals = cos.filter((c) => c.recentSignal).length;
-  const score = Math.round(0.4 * share(recent) + 0.35 * share(emerging) + 0.25 * share(signals));
+  // Fragmentation: many independent, sub-scale names = more roll-up runway.
+  const subScale = cos.filter((c) => {
+    const b = stageBucket(c.stage);
+    return b === "Seed" || b === "Early" || b === "Other" || b === "Growth";
+  }).length;
+  const segments = report.segments.length || 1;
+  // More companies spread across more segments => more fragmented.
+  const score = Math.min(100, Math.round(share(subScale) * 0.7 + Math.min(40, segments * 8)));
   return {
     score,
-    label: "Momentum",
-    caption: `${recent} founded in the last 6 years · ${emerging} under-the-radar.`,
+    label: "Fragmentation Index",
+    caption: `${subScale} sub-scale targets across ${segments} sub-segments — buy-and-build runway.`,
   };
+}
+
+/** Count of platform-scale names (the anchor candidates), for the thesis slide. */
+export function platformCount(report: Report): number {
+  return report.companies.filter((c) =>
+    ["Growth", "Late", "Public"].includes(stageBucket(c.stage)),
+  ).length;
 }

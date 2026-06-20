@@ -251,23 +251,24 @@ async function synthesizeLandscape(
   seedContext: string,
 ): Promise<Landscape> {
   const anchorLine = anchorDomain
-    ? `\nThe anchor company is ${anchorDomain} (${seedContext.slice(0, 300)}); cluster the rest as its competitive set and adjacents.`
+    ? `\nThe platform company is ${anchorDomain} (${seedContext.slice(0, 300)}); treat the rest as candidate add-on / consolidation targets around it.`
     : "";
   const land = await generateJSON<Landscape>({
-    prompt: `You are mapping a market for an analyst. ${
+    prompt: `You are a private-equity deal-origination analyst mapping the add-on universe for a buy-and-build (roll-up). ${
       mode === "company"
-        ? `The seed is the company "${query}".`
-        : `The thesis is: "${query}".`
+        ? `The platform seed is the company "${query}".`
+        : `The consolidation thesis is: "${query}".`
     }${anchorLine}
 
-Here are companies Exa discovered (name, domain, and a short extracted summary). Build a market landscape from ONLY these companies — do not invent companies or domains.
-
-${candidateBlock(hits)}
+Here are companies Exa discovered (name, domain, and a short extracted summary). Build the target universe from ONLY these companies — do not invent companies or domains.
 
 Produce:
-1. "segments": 3-6 sub-segment clusters. Each has a short "label", a one-line "blurb", and "domains" = the exact domains (from the list above) that belong to it. Every company should appear in exactly one segment.
-2. "companies": one entry per company above, with: "name", "domain" (copy exactly), "segment" (matching a segment label), "oneLiner" (<= 12 words on what it does), "summary" (2-3 evidence-based sentences), "similar" (2-3 other company NAMES from the list it most resembles), and "emerging" (true if it is a lesser-known / under-the-radar company not likely catalogued in PitchBook yet).
+1. "segments": 3-6 consolidation sub-segments. Prefer the buckets a deal team thinks in: core add-ons (do the same thing), adjacent capabilities (expand the platform's offering), and geographic expansion (same model, new region). Each has a short "label", a one-line "blurb", and "domains" = the exact domains (from the list above) that belong to it. Every company appears in exactly one segment.
+2. "companies": one entry per company above, written as an acquisition-target qualification, with: "name", "domain" (copy exactly), "segment" (matching a segment label), "oneLiner" (<= 12 words on what it does), "summary" (2-3 evidence-based sentences on fit as an add-on), "similar" (2-3 other company NAMES from the list it most resembles), and "emerging" (true if it is a small / founder-owned / under-the-radar target NOT likely catalogued in PitchBook or Sourcescrub yet — these are the proprietary finds).
 3. Quant fields per company, filled ONLY when the evidence is in the content above; otherwise use an empty string "". Do NOT guess or invent numbers. "founded" (4-digit year), "funding" (total raised as a short string like "$120M" or "$1.2B"), "stage" (e.g. "Seed", "Series B", "Public", "Bootstrapped", "Acquired"), "employees" (a range like "11-50", "201-500"), "region" (HQ city/country).
+
+Candidates:
+${candidateBlock(hits)}
 
 Domains flagged by Exa as recent/low-profile: ${[...emergingDomains].join(", ") || "(none)"} — lean toward emerging=true for these. Only output the JSON.`,
     schema: LANDSCAPE_SCHEMA,
@@ -351,21 +352,26 @@ async function writeExecutiveSummary(
   segments: Segment[],
   companies: Company[],
 ): Promise<string> {
-  const emerging = companies.filter((c) => c.emerging).map((c) => c.name);
+  const proprietary = companies.filter((c) => c.emerging).map((c) => c.name);
+  const firstCalls = companies
+    .filter((c) => c.emerging || c.recentSignal)
+    .slice(0, 5)
+    .map((c) => c.name);
   const map = segments
-    .map((s) => `- ${s.label}: ${s.domains.length} companies`)
+    .map((s) => `- ${s.label}: ${s.domains.length} targets`)
     .join("\n");
   return generateText({
-    prompt: `Write a tight executive summary (about 130-170 words) for a ${
-      mode === "company" ? `competitive landscape around "${query}"` : `market landscape for the thesis "${query}"`
-    }, for a financial-services investment committee.
+    prompt: `Write a tight deal-origination memo (about 130-170 words) for a KKR private-equity buy-and-build (roll-up) ${
+      mode === "company" ? `around the platform "${query}"` : `for the consolidation thesis "${query}"`
+    }, for the investment committee.
 
-The discovered universe, clustered:
+The add-on universe, clustered into consolidation sub-segments:
 ${map}
 
-Notable under-the-radar names: ${emerging.slice(0, 6).join(", ") || "none stood out"}.
+Proprietary / off-database targets: ${proprietary.slice(0, 6).join(", ") || "none stood out"}.
+Suggested first calls: ${firstCalls.join(", ") || "the most established names"}.
 
-Cover: the shape of the market, where the density and the white space are, what the emerging names signal, and one crisp "so what" for an investor. Plain, confident prose. No headings, no bullet points, no em-dashes. Do not invent specific financials.`,
+Cover, in plain confident prose: (1) the fragmentation thesis — how fragmented and consolidatable the market is; (2) the anchor / platform and the depth of the add-on runway; (3) the first targets to approach and why; (4) a crisp sequencing recommendation. No headings, no bullet points, no em-dashes. Do not invent specific financials or valuations.`,
     temperature: 0.5,
   });
 }
@@ -385,20 +391,25 @@ export async function streamReport(
 ): Promise<void> {
   await emit({ type: "progress", phase: "Routing your request" });
   const route = await routeInput(query);
-  const mode: ReportMode = route.mode;
 
-  const restated =
-    mode === "company"
-      ? route.companyName || query
-      : route.sectorThesis || query;
-  const anchorDomain =
-    mode === "company" ? route.companyDomain : undefined;
-  const anchor =
-    mode === "company" && anchorDomain
-      ? { name: route.companyName || brandNameFromDomain(anchorDomain), domain: anchorDomain }
-      : undefined;
+  // Company-only desk: always present as a platform-anchored add-on map. When we
+  // can't resolve a single company (e.g. the user typed a sector), we still run a
+  // best-effort search and gently nudge toward a platform company — never error.
+  const mode: ReportMode = "company";
+  const anchorDomain = route.companyDomain;
+  const restated = route.companyName || route.sectorThesis || query;
+  const anchor = anchorDomain
+    ? { name: route.companyName || brandNameFromDomain(anchorDomain), domain: anchorDomain }
+    : undefined;
 
   await emit({ type: "meta", mode, query: restated, anchor });
+  if (!anchorDomain) {
+    await emit({
+      type: "progress",
+      phase:
+        "No single platform company matched — mapping the closest target set (tip: enter one company, like ServiceTitan)",
+    });
+  }
 
   // 1. Discover the company set, grounded in what the seed actually does.
   // Company mode combines two signals so we don't over-index on the brand token:
@@ -408,7 +419,7 @@ export async function streamReport(
   let seedContext = restated;
   let rawHits: SearchHit[] = [];
 
-  if (mode === "company" && anchorDomain) {
+  if (anchorDomain) {
     await emit({ type: "progress", phase: `Reading ${anchor?.name ?? anchorDomain}` });
     const site = await fetchSiteContent(anchorDomain).catch(() => null);
     seedContext =
@@ -564,7 +575,7 @@ export async function streamReport(
   };
   let reportId: string | undefined;
   try {
-    reportId = (await saveReport(report, opts.firmId || "goldman-sachs")) ?? undefined;
+    reportId = (await saveReport(report, opts.firmId || "kkr")) ?? undefined;
   } catch {
     reportId = undefined;
   }
