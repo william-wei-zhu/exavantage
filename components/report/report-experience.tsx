@@ -71,11 +71,11 @@ export function ReportExperience() {
               {busy ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Mapping
+                  Finding
                 </>
               ) : (
                 <>
-                  Map the add-ons
+                  Find companies to acquire
                   <ArrowRight className="h-5 w-5" />
                 </>
               )}
@@ -90,7 +90,7 @@ export function ReportExperience() {
 
         {showInputs && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-muted-foreground">Try a platform:</span>
+            <span className="text-sm text-muted-foreground">Start with:</span>
             {lens.examples.map((ex) => (
               <button
                 key={ex.query}
