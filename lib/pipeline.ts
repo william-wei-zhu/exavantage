@@ -7,12 +7,13 @@ import {
   resolveCompanyDomain,
   searchCompanies,
   searchEmerging,
+  searchMarketSize,
   type SearchHit,
 } from "./exa";
-import { generateJSON, generateText, Type, type Schema } from "./gemini";
-import { mapLimit, brandNameFromDomain, isValidDomain, normalizeDomain } from "./util";
+import { generateJSON, Type, type Schema } from "./gemini";
+import { mapLimit, brandNameFromDomain, domainOf, isValidDomain, normalizeDomain } from "./util";
 import { saveReport } from "./store";
-import type { Company, Report, ReportMode, Segment, StreamEvent } from "./types";
+import type { Company, DealThesis, MarketContext, Report, ReportMode, Segment, StreamEvent } from "./types";
 
 type Emit = (e: StreamEvent) => void | Promise<void>;
 
@@ -344,35 +345,202 @@ Only output the JSON.`,
   }
 }
 
-// ---- executive summary ----
+// ---- cited market context (evidence-only, sourced from Exa) ----
 
-async function writeExecutiveSummary(
+const MARKET_SCHEMA: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    stat: { type: Type.STRING },
+    detail: { type: Type.STRING },
+    sourceUrl: { type: Type.STRING },
+  },
+  required: ["stat", "detail", "sourceUrl"],
+};
+
+/**
+ * Pull ONE cited market-size / growth stat for the thesis: Exa retrieves industry
+ * pages, then Gemini extracts a figure that is EXPLICITLY stated, copying the
+ * exact source URL. The number + URL come from the retrieved page, never invented;
+ * the source URL must match a retrieved result (no hallucinated citation).
+ * Returns undefined when nothing clear is found, so the deck simply omits it.
+ */
+async function fetchMarketContext(
+  sectorHint: string,
+  excludeCompany?: string,
+): Promise<MarketContext | undefined> {
+  const hits = await searchMarketSize(sectorHint, 8).catch(() => []);
+  if (hits.length === 0) return undefined;
+  try {
+    const block = hits
+      .map((h) => `${h.url}\n<UNTRUSTED_CONTENT>${h.text}</UNTRUSTED_CONTENT>`)
+      .join("\n\n");
+    const excludeLine = excludeCompany
+      ? `\nCRITICAL: extract the size of the OVERALL MARKET / INDUSTRY, NOT the revenue, ARR, or valuation of any single company. If a snippet only gives one company's figure (e.g. "${excludeCompany}'s ARR" or a stock/earnings page), IGNORE it. Only accept a total addressable market / industry size.`
+      : `\nExtract the OVERALL MARKET / INDUSTRY size, never a single company's revenue or valuation.`;
+    const out = await generateJSON<{ stat: string; detail: string; sourceUrl: string }>({
+      prompt: `From the market-research snippets below, extract ONE headline TOTAL MARKET size for the industry "${sectorHint}" that is EXPLICITLY stated in the text, ideally a market size in dollars plus a growth rate (CAGR).${excludeLine}
+"stat": a short string like "~$14B market, growing ~11%/yr" (include only what the text states; drop the growth rate if it is not stated; always frame it as a market, e.g. "~$14B market").
+"detail": one short clause of extra context if present, else "".
+"sourceUrl": copy the exact URL the figure came from.
+If NO clear overall-market figure is stated in any snippet, return "" for all three. Never invent, estimate, or round a number that is not in the text.
+
+${block}
+
+Only output the JSON.`,
+      schema: MARKET_SCHEMA,
+      system:
+        "You extract a single, explicitly-stated TOTAL MARKET / INDUSTRY size from provided web text for a research analyst, never a single company's revenue. Accuracy over completeness: if an overall-market figure is not clearly stated, return empty. Never invent figures.",
+      temperature: 0,
+    });
+    const stat = clean(out.stat);
+    const url = clean(out.sourceUrl);
+    if (!stat || !url) return undefined;
+    // The cited URL must be one we actually retrieved (no hallucinated source).
+    const match = hits.find((h) => h.url === url) ?? hits.find((h) => url.includes(h.domain));
+    if (!match) return undefined;
+    return { stat, detail: clean(out.detail), sourceName: match.domain, sourceUrl: match.url, confidence: match.tier };
+  } catch {
+    return undefined;
+  }
+}
+
+// ---- strategic analysis: the partner-grade deal thesis ----
+
+const DEAL_THESIS_SCHEMA: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    recommendation: { type: Type.STRING },
+    conviction: { type: Type.STRING, enum: ["High", "Medium", "Exploratory"] },
+    whyNow: { type: Type.ARRAY, items: { type: Type.STRING } },
+    fragmentation: { type: Type.STRING },
+    segmentReads: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          label: { type: Type.STRING },
+          read: { type: Type.STRING },
+          rank: { type: Type.NUMBER },
+        },
+        required: ["label", "read", "rank"],
+      },
+    },
+    beachhead: { type: Type.STRING },
+    anchor: {
+      type: Type.OBJECT,
+      properties: {
+        name: { type: Type.STRING },
+        why: { type: Type.STRING },
+        brings: { type: Type.STRING },
+        needs: { type: Type.STRING },
+      },
+      required: ["name", "why", "brings", "needs"],
+    },
+    targets: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          domain: { type: Type.STRING },
+          tier: { type: Type.NUMBER },
+          whyCall: { type: Type.STRING },
+          angle: { type: Type.STRING },
+        },
+        required: ["domain", "tier", "whyCall", "angle"],
+      },
+    },
+    valueLevers: { type: Type.ARRAY, items: { type: Type.STRING } },
+    edge: { type: Type.STRING },
+    risks: { type: Type.ARRAY, items: { type: Type.STRING } },
+    firstCalls: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: { name: { type: Type.STRING }, why: { type: Type.STRING } },
+        required: ["name", "why"],
+      },
+    },
+    sequencing: { type: Type.STRING },
+    ask: { type: Type.STRING },
+    takeaways: {
+      type: Type.OBJECT,
+      properties: {
+        whyNow: { type: Type.STRING },
+        thesis: { type: Type.STRING },
+        where: { type: Type.STRING },
+        anchor: { type: Type.STRING },
+        targets: { type: Type.STRING },
+        value: { type: Type.STRING },
+        edge: { type: Type.STRING },
+        play: { type: Type.STRING },
+      },
+      required: ["whyNow", "thesis", "where", "anchor", "targets", "value", "edge", "play"],
+    },
+  },
+  required: [
+    "recommendation", "conviction", "whyNow", "fragmentation", "segmentReads", "beachhead",
+    "anchor", "targets", "valueLevers", "edge", "risks", "firstCalls", "sequencing", "ask",
+    "takeaways",
+  ],
+};
+
+/** One Gemini pass turning the discovered set into a partner-grade recommendation. */
+async function analyzeOpportunity(
   query: string,
   mode: ReportMode,
   segments: Segment[],
   companies: Company[],
-): Promise<string> {
-  const proprietary = companies.filter((c) => c.emerging).map((c) => c.name);
-  const firstCalls = companies
-    .filter((c) => c.emerging || c.recentSignal)
-    .slice(0, 5)
-    .map((c) => c.name);
-  const map = segments
-    .map((s) => `- ${s.label}: ${s.domains.length} targets`)
+  market: MarketContext | undefined,
+  seedContext: string,
+): Promise<DealThesis> {
+  const segBlock = segments.map((s) => `- ${s.label} (${s.domains.length}): ${s.blurb}`).join("\n");
+  const coBlock = companies
+    .map(
+      (c) =>
+        `- ${c.name} | ${c.domain} | ${c.oneLiner} | stage: ${c.stage || "?"} | funding: ${c.funding || "?"} | employees: ${c.employees || "?"} | HQ: ${c.region || "?"} | founded: ${c.foundedYear || "?"} | ${c.emerging ? "off-database" : "catalogued"}`,
+    )
     .join("\n");
-  return generateText({
-    prompt: `Write a tight deal-origination memo (about 130-170 words) for a KKR private-equity buy-and-build (roll-up) ${
-      mode === "company" ? `around the platform "${query}"` : `for the consolidation thesis "${query}"`
-    }, for the investment committee.
+  const marketLine = market
+    ? `\nCited market stat (use this EXACT string for any market figure, do not restate a number differently): "${market.stat}"${market.detail ? `, ${market.detail}` : ""} (source: ${market.sourceName}).`
+    : "\nNo cited market figure is available; refer to market size only qualitatively (large, fragmented), never with a dollar number.";
+  const anchorLine = seedContext
+    ? `\nThe platform's actual capabilities (use these to make value levers specific): ${seedContext.slice(0, 400)}`
+    : "";
 
-The add-on universe, clustered into consolidation sub-segments:
-${map}
+  return generateJSON<DealThesis>({
+    prompt: `Build the buy-and-build (roll-up) thesis for ${
+      mode === "company" ? `the platform "${query}"` : `the consolidation thesis "${query}"`
+    }.${marketLine}${anchorLine}
 
-Proprietary / off-database targets: ${proprietary.slice(0, 6).join(", ") || "none stood out"}.
-Suggested first calls: ${firstCalls.join(", ") || "the most established names"}.
+Sub-segments:
+${segBlock}
 
-Cover, in plain confident prose: (1) the fragmentation thesis — how fragmented and consolidatable the market is; (2) the anchor / platform and the depth of the add-on runway; (3) the first targets to approach and why; (4) a crisp sequencing recommendation. No headings, no bullet points, no em-dashes. Do not invent specific financials or valuations.`,
-    temperature: 0.5,
+Discovered targets:
+${coBlock}
+
+Produce a structured recommendation. Rules:
+- Base every claim ONLY on the targets / segments / market above. NEVER invent revenue, valuations, multiples, growth rates, or market-share percentages. Recommendation and conviction are your judgment.
+- NUMBERS: use compact notation only ($150B, not "150 billion dollar"). Any market-size figure must be the EXACT cited stat string above, or omitted. No other dollar figures.
+- "recommendation": ONE punchy sentence, max 22 words. State the NON-OBVIOUS wedge (the specific consolidation insight, e.g. which sub-scale point-solutions the platform cross-sells into), not the generic category.
+- "conviction": High, Medium, or Exploratory.
+- "whyNow": exactly 3 grounded catalysts / tailwinds (founder succession, technology forcing scale, end-market demand). Briefly note if other consolidators are already active.
+- "fragmentation": one evidence sentence from the SET (no single name dominates these N; no scaled consolidator; many sub-scale / founder-owned).
+- "segmentReads": for EACH sub-segment above, a one-line consolidation read and a "rank" (1 = most attractive to start).
+- "beachhead": which sub-segment to start in and why (one line).
+- "anchor": the platform candidate. Be REALISTIC about its role: if the input is a large/public company, frame it as "back a [name]-like scaled player" or "[name] as the consolidation vehicle", not "acquire [name]". "name", "why" it anchors, what it "brings", what it "needs".
+- "targets": EVERY company above, each with its exact "domain", a "tier" (1 = call now, 2 = next, 3 = watch), a one-line "whyCall", and an "angle" GROUNDED in that company's own data above (e.g. "founded 2004, no disclosed funding, ~50-200 staff -> likely founder-owned succession seller"; "sub-scale tuck-in adding [capability]"). Reserve tier 1 for the best 3 to 5 fits.
+- "valueLevers": 3 to 4 levers SPECIFIC to this platform and these sub-segments, naming the platform's capabilities and the segment names (e.g. "cross-sell [platform]'s payments module into acquired [segment] bases"; "consolidate overlapping [segment] tools"). Include multiple arbitrage (buy sub-scale below the platform's exit multiple) as one lever, stated qualitatively.
+- "edge": one line turning off-database / proprietary sourcing into return logic (off-auction, lower entry multiples, protected returns).
+- "risks": 2 to 3 specific things to diligence or what could kill it (e.g. saturated TAM, integration across codebases, competing buyers bidding up quality assets).
+- "firstCalls": the top 3 to 5 names to approach first, each with a one-line "why".
+- "sequencing": one line on order (anchor first, then which add-ons).
+- "ask": the concrete decision requested of the investment committee.
+- "takeaways": one crisp CONCLUSION line for each slide key (whyNow, thesis, where, anchor, targets, value, edge, play). Each is a so-what a partner acts on, max ~16 words, not a restatement of the slide title.
+Only output the JSON.`,
+    schema: DEAL_THESIS_SCHEMA,
+    system:
+      "You are a KKR private-equity deal-origination partner writing a sourcing recommendation for the investment committee. Be decisive, specific, and grounded only in the provided data. Never fabricate financial figures; frame the recommendation as analyst judgment. Do not use em-dashes.",
+    temperature: 0.4,
   });
 }
 
@@ -411,6 +579,7 @@ export async function streamReport(
     });
   }
 
+
   // 1. Discover the company set, grounded in what the seed actually does.
   // Company mode combines two signals so we don't over-index on the brand token:
   //   (a) Exa findSimilar on the seed domain, and
@@ -440,6 +609,11 @@ export async function streamReport(
     await emit({ type: "progress", phase: "Searching the market with Exa" });
     rawHits = await searchCompanies(restated, MAX_COMPANIES + 10);
   }
+
+  // Market context: search the SECTOR (from the seed's real business), not the
+  // company name, and tell the extractor to ignore the anchor's own revenue.
+  // Kicked off here so it overlaps the rest of the pipeline.
+  const marketPromise = fetchMarketContext(seedContext, anchor?.name).catch(() => undefined);
 
   if (rawHits.length === 0) {
     await emit({
@@ -511,7 +685,7 @@ export async function streamReport(
 
   // 4. Per-company intel (Exa): one search each yields a recent signal + facts.
   await emit({ type: "progress", phase: "Pulling signals and company facts" });
-  const intel = await mapLimit(land.companies, 4, async (c) => ({
+  const intel = await mapLimit(land.companies, 6, async (c) => ({
     company: c,
     intel: await fetchCompanyIntel(c.name),
   }));
@@ -550,17 +724,26 @@ export async function streamReport(
   const emerging = enriched.filter((c) => c.emerging);
   await emit({ type: "emerging", companies: emerging });
 
-  // 6. Executive summary (synthesis), shown last on web / first in the PDF.
-  await emit({ type: "progress", phase: "Writing the executive summary" });
-  const executiveSummary = await writeExecutiveSummary(
-    restated,
-    mode,
-    land.segments,
-    enriched,
-  );
+  // 6. Cited market context (the "size of the prize") — started in parallel above.
+  await emit({ type: "progress", phase: "Pulling market context" });
+  const marketContext = await marketPromise;
+  if (marketContext) await emit({ type: "market", marketContext });
+
+  // 7. Strategic analysis: the partner-grade deal thesis that drives every slide.
+  await emit({ type: "progress", phase: "Writing the deal thesis" });
+  let thesis: DealThesis | undefined;
+  try {
+    thesis = await analyzeOpportunity(restated, mode, land.segments, enriched, marketContext, seedContext);
+  } catch {
+    thesis = undefined;
+  }
+  if (thesis) await emit({ type: "analysis", thesis });
+
+  // Keep a short executiveSummary for back-compat (older /r pages / PDF metadata).
+  const executiveSummary = thesis ? `${thesis.recommendation} ${thesis.ask}` : "";
   await emit({ type: "summary", executiveSummary });
 
-  // 7. Persist the finished report (server-side, so saved content is trusted)
+  // 8. Persist the finished report (server-side, so saved content is trusted)
   //    and hand back its id so the client can offer a shareable link.
   const generatedAt = new Date().toISOString();
   const report: Report = {
@@ -571,6 +754,8 @@ export async function streamReport(
     companies: enriched,
     emerging,
     executiveSummary,
+    marketContext,
+    thesis,
     generatedAt,
   };
   let reportId: string | undefined;

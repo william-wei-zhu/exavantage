@@ -1,48 +1,61 @@
-import type { SlideProps } from "./bits";
-import { BarChart, CompsTable, StatBlock } from "./bits";
+import type { Company } from "@/lib/types";
+import type { PageInfo, SlideProps } from "./bits";
+import { CompsTable, Favicon, TierBadge, evidenceLine } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { lensIndex, quantCoverage, segmentSizes, stageMix } from "@/lib/metrics";
+import { quantCoverage } from "@/lib/metrics";
 
-/** Quantitative view: comps table + derived charts + the lens index. */
-export function QuantSlide({ report, firm, lens }: SlideProps) {
+/** Priority targets: the tiered shortlist with why-call, angle, and grounded evidence. */
+export function QuantSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
-  const stages = stageMix(report.companies);
-  const segs = segmentSizes(report).slice(0, 6);
+  const thesis = report.thesis;
   const cov = quantCoverage(report.companies);
-  const idx = lensIndex(firm.lens, report);
-  const chart = stages.length >= 2 ? stages : segs;
-  const chartTitle = stages.length >= 2 ? "Stage mix" : "Companies per segment";
+  const byDomain = new Map(report.companies.map((c) => [c.domain.toLowerCase(), c]));
+  const ranked = (thesis?.targets ?? [])
+    .map((tg) => ({ tg, c: byDomain.get(tg.domain.toLowerCase()) }))
+    .filter((x): x is { tg: NonNullable<typeof thesis>["targets"][number]; c: Company } => Boolean(x.c));
+  const tier1 = ranked.filter((x) => x.tg.tier === 1).slice(0, 5);
 
   return (
-    <SlideFrame firm={firm} lens={lens} title={lens.quantTitle}>
-      <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ fontFamily: t.headingFont, color: t.primary }}>
-          {lens.quantTitle}
-        </h2>
-        <span className="text-[11px]" style={{ color: `${t.ink}80` }}>
-          Estimated from public web · {cov.funding}/{cov.total} with funding data
-        </span>
-      </div>
-
-      <div className="mt-5 grid gap-7 lg:grid-cols-[1.5fr_1fr]">
+    <SlideFrame
+      firm={firm}
+      lens={lens}
+      kicker={lens.quantTitle}
+      title={thesis?.takeaways.targets ?? lens.quantTitle}
+      titleRight={`Estimated from public web · ${cov.funding}/${cov.total} with funding data`}
+      page={page}
+      note="Figures estimated from public web sources, blank when none found; ownership inferred, not verified. Not investment advice."
+    >
+      <div className="grid gap-7 lg:grid-cols-[1fr_1fr]">
         <div>
-          <CompsTable companies={report.companies} accent={t.primary} />
+          <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: t.primary }}>Tier 1 · Call now</div>
+          <div className="space-y-2.5">
+            {tier1.length ? (
+              tier1.map(({ tg, c }) => (
+                <div key={c.domain} className="rounded-md border p-3" style={{ borderColor: `${t.ink}16` }}>
+                  <div className="flex items-center gap-2">
+                    <Favicon domain={c.domain} size={18} />
+                    <span className="text-[14px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
+                    <span className="ml-auto"><TierBadge tier={1} t={t} /></span>
+                  </div>
+                  <p className="mt-1.5 text-[12.5px] leading-snug" style={{ color: `${t.ink}c8` }}>
+                    <span className="font-semibold" style={{ color: t.primary }}>Why call: </span>{tg.whyCall}
+                  </p>
+                  <p className="mt-1 text-[12px] leading-snug" style={{ color: `${t.ink}99` }}>
+                    <span className="font-semibold">Angle: </span>{tg.angle}
+                  </p>
+                  <p className="mt-1.5 text-[10.5px] font-medium" style={{ color: `${t.ink}80` }}>Evidence: {evidenceLine(c)}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-[13px]" style={{ color: `${t.ink}80` }}>See the full screen at right.</p>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col gap-6">
-          <div className="flex gap-7">
-            <StatBlock value={String(idx.score)} label={idx.label} accent={t.primary} />
-            <StatBlock value={String(report.companies.length)} label="in the set" accent={t.primary} />
-          </div>
-          <div>
-            <div className="mb-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: `${t.ink}80` }}>{chartTitle}</div>
-            <BarChart data={chart} accent={t.primary} />
-          </div>
+        <div>
+          <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: `${t.ink}80` }}>The full screen</div>
+          <CompsTable companies={report.companies} t={t} />
         </div>
       </div>
-
-      <p className="mt-6 text-[11px]" style={{ color: `${t.ink}70` }}>
-        Figures are estimates extracted from public web sources and may be incomplete; blank cells indicate no public data found. Not investment advice.
-      </p>
     </SlideFrame>
   );
 }

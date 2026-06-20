@@ -12,6 +12,7 @@ import { PRINT_EXACT, type PageInfo } from "./bits";
 export function SlideFrame({
   firm,
   lens,
+  kicker,
   title,
   intro,
   titleRight,
@@ -21,6 +22,9 @@ export function SlideFrame({
 }: {
   firm: Firm;
   lens: LensCopy;
+  /** Small category label above the action-title headline. */
+  kicker?: string;
+  /** The action-title headline (the slide's "so-what" conclusion). */
   title: string;
   intro?: string;
   titleRight?: React.ReactNode;
@@ -35,10 +39,17 @@ export function SlideFrame({
       style={{ background: t.paper, color: t.ink, fontFamily: t.bodyFont, ...PRINT_EXACT }}
     >
       <div className="flex flex-1 flex-col px-7 py-7 sm:px-10 sm:py-8">
-        <div className="flex items-start justify-between gap-4">
-          <h2 className="text-2xl font-bold tracking-tight sm:text-[28px]" style={{ fontFamily: t.headingFont, color: t.primary }}>
-            {title}
-          </h2>
+        <div className="flex items-start justify-between gap-5">
+          <div className="min-w-0">
+            {kicker && (
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: t.accent }}>
+                {kicker}
+              </p>
+            )}
+            <h2 className="text-[22px] font-bold leading-[1.14] tracking-tight sm:text-[26px]" style={{ fontFamily: t.headingFont, color: t.primary }}>
+              {title}
+            </h2>
+          </div>
           {titleRight && <div className="shrink-0 pt-1 text-right text-[11px]" style={{ color: `${t.ink}80` }}>{titleRight}</div>}
         </div>
         <div className="mt-3 h-[3px] w-12 rounded-full" style={{ background: t.accent, ...PRINT_EXACT }} />

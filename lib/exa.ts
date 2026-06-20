@@ -201,6 +201,71 @@ export async function agentDiscoverEmerging(
   }
 }
 
+export type MarketHit = {
+  url: string;
+  domain: string;
+  title?: string;
+  text: string;
+  /** Recognized market-research / filing source, vs a secondary page. */
+  tier: "research firm" | "secondary";
+};
+
+/** Recognized market-research firms + primary sources a PE IC would accept. */
+const CREDIBLE_MARKET_SOURCES = [
+  "grandviewresearch.com", "ibisworld.com", "gartner.com", "statista.com",
+  "mordorintelligence.com", "marketsandmarkets.com", "precedenceresearch.com",
+  "fortunebusinessinsights.com", "researchandmarkets.com", "globenewswire.com",
+  "mckinsey.com", "bain.com", "bcg.com", "forrester.com", "idc.com",
+  "spglobal.com", "pitchbook.com", "cbinsights.com", "sec.gov", "businesswire.com",
+];
+
+function marketSourceTier(domain: string): "research firm" | "secondary" {
+  const d = domain.toLowerCase();
+  return CREDIBLE_MARKET_SOURCES.some((s) => d === s || d.endsWith(`.${s}`)) ? "research firm" : "secondary";
+}
+
+/**
+ * Market-context pass: Exa search for market-size / growth pages, biased toward
+ * recognized research firms / filings. Returns candidate snippets + source URLs
+ * with a credibility tier, sorted credible-first; a Gemini evidence-only pass then
+ * extracts ONE stat (it never invents a figure). [] on failure -> deck omits the stat.
+ */
+export async function searchMarketSize(query: string, numResults = 8): Promise<MarketHit[]> {
+  try {
+    const r = await withRetry(
+      () =>
+        exa().search(
+          `${query} industry market size, CAGR growth rate, and forecast (market research report)`,
+          {
+            type: "auto",
+            numResults,
+            text: { maxCharacters: 1200 },
+            highlights: { numSentences: 2, highlightsPerUrl: 2, query: `${query} market size billion CAGR growth rate forecast` },
+          } as Parameters<Exa["search"]>[1],
+        ),
+      { label: `exa.market ${query.slice(0, 30)}`, retries: 1, baseMs: 500 },
+    );
+    const results = (r?.results ?? []) as Array<{ url?: string; title?: string; text?: string; highlights?: string[] }>;
+    const hits = results
+      .filter((x) => x.url)
+      .map((x) => {
+        const domain = domainOf(x.url as string);
+        return {
+          url: x.url as string,
+          domain,
+          title: x.title,
+          text: [(x.highlights ?? []).join(" "), x.text].filter(Boolean).join(" ").slice(0, 1200),
+          tier: marketSourceTier(domain),
+        };
+      })
+      .filter((x) => x.text.trim().length > 0);
+    // Credible sources first, preserving Exa rank within each tier.
+    return hits.sort((a, b) => (a.tier === b.tier ? 0 : a.tier === "research firm" ? -1 : 1));
+  } catch {
+    return [];
+  }
+}
+
 /** Pull a company's own site content (homepage + about/product subpages). */
 export async function fetchSiteContent(domain: string): Promise<SiteContent> {
   const url = urlForDomain(domain);

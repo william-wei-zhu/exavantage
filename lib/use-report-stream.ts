@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import type { Company, Report, ReportMode, Segment, StreamEvent } from "./types";
+import type { Company, DealThesis, MarketContext, Report, ReportMode, Segment, StreamEvent } from "./types";
 
 export type ReportStatus = "idle" | "loading" | "done" | "error";
 
@@ -16,6 +16,8 @@ export type ReportState = {
   companies: Company[];
   emerging: Company[];
   executiveSummary: string;
+  marketContext: MarketContext | null;
+  thesis: DealThesis | null;
   generatedAt: string | null;
   reportId: string | null;
 };
@@ -31,6 +33,8 @@ const EMPTY: ReportState = {
   companies: [],
   emerging: [],
   executiveSummary: "",
+  marketContext: null,
+  thesis: null,
   generatedAt: null,
   reportId: null,
 };
@@ -78,12 +82,16 @@ export function useReportStream() {
               return { ...s, phase: e.phase };
             case "meta":
               return { ...s, mode: e.mode, query: e.query, anchor: e.anchor ?? null };
+            case "market":
+              return { ...s, marketContext: e.marketContext };
             case "segments":
               return { ...s, segments: e.segments };
             case "company":
               return { ...s, companies: [...s.companies, e.company] };
             case "emerging":
               return { ...s, emerging: e.companies };
+            case "analysis":
+              return { ...s, thesis: e.thesis };
             case "summary":
               return { ...s, executiveSummary: e.executiveSummary };
             case "done":
@@ -141,6 +149,8 @@ export function toReport(s: ReportState): Report {
     companies: s.companies,
     emerging: s.emerging,
     executiveSummary: s.executiveSummary,
+    marketContext: s.marketContext ?? undefined,
+    thesis: s.thesis ?? undefined,
     generatedAt: s.generatedAt ?? undefined,
   };
 }

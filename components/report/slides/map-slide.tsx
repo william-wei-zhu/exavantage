@@ -1,42 +1,61 @@
-import type { SlideProps } from "./bits";
+import type { PageInfo, SlideProps } from "./bits";
 import { Favicon, groupBySegment, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
 
-/** The market map: discovered companies clustered by sub-segment. */
-export function MapSlide({ report, firm, lens }: SlideProps) {
+/** Where to win: sub-segments ranked by consolidation attractiveness, beachhead named. */
+export function MapSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
+  const thesis = report.thesis;
   const groups = groupBySegment(report);
+  const reads = new Map((thesis?.segmentReads ?? []).map((r) => [r.label, r]));
+  const ordered = [...groups].sort(
+    (a, b) => (reads.get(a.segment.label)?.rank ?? 99) - (reads.get(b.segment.label)?.rank ?? 99),
+  );
+  const palette = [t.primary, t.secondary, t.accent, t.lavender, t.green, t.gold];
 
   return (
-    <SlideFrame firm={firm} lens={lens} title={lens.mapTitle}>
-      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ fontFamily: t.headingFont, color: t.primary }}>
-        {lens.mapTitle}
-      </h2>
-      <p className="mt-2 max-w-2xl text-[14px] leading-snug" style={{ color: `${t.ink}99` }}>{lens.mapIntro}</p>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {groups.map((g) => (
-          <div key={g.segment.label} className="rounded-xl p-4" style={{ background: t.surface, ...PRINT_EXACT }}>
-            <div className="flex items-baseline justify-between">
-              <h3 className="text-[15px] font-bold leading-tight" style={{ fontFamily: t.headingFont, color: t.primary }}>
-                {g.segment.label}
-              </h3>
-              <span className="text-[12px] font-bold tabular-nums" style={{ color: `${t.ink}80` }}>{g.companies.length}</span>
-            </div>
-            <p className="mt-1 text-[12px] leading-snug" style={{ color: `${t.ink}99` }}>{g.segment.blurb}</p>
-            <ul className="mt-2.5 space-y-1.5">
-              {g.companies.map((c) => (
-                <li key={c.domain} className="flex items-center gap-2 text-[13.5px]">
-                  <Favicon domain={c.domain} size={15} />
-                  <span className="truncate font-medium">{c.name}</span>
-                  {c.emerging && (
-                    <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: t.primary, ...PRINT_EXACT }} title="Emerging" />
+    <SlideFrame
+      firm={firm}
+      lens={lens}
+      kicker={lens.mapTitle}
+      title={thesis?.takeaways.where ?? lens.mapTitle}
+      page={page}
+      note="Sub-segments ranked by consolidation attractiveness. Off-database targets marked with a teal dot."
+    >
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {ordered.map((g, gi) => {
+          const r = reads.get(g.segment.label);
+          const beachhead = r?.rank === 1;
+          const c = palette[gi % palette.length];
+          return (
+            <div
+              key={g.segment.label}
+              className="overflow-hidden rounded-lg"
+              style={{ background: t.paper, boxShadow: beachhead ? `0 0 0 2px ${t.primary}` : `0 0 0 1px ${t.ink}1f`, ...PRINT_EXACT }}
+            >
+              <div className="h-1.5 w-full" style={{ background: c, ...PRINT_EXACT }} />
+              <div className="p-3.5">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-[14px] font-bold leading-tight" style={{ fontFamily: t.headingFont, color: t.primary }}>{g.segment.label}</h3>
+                  {beachhead && (
+                    <span className="rounded-sm px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-white" style={{ background: t.primary, ...PRINT_EXACT }}>Start here</span>
                   )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+                  <span className="ml-auto shrink-0 text-[12px] font-bold tabular-nums" style={{ color: c }}>{g.companies.length}</span>
+                </div>
+                <p className="mt-1 text-[11.5px] font-medium leading-snug" style={{ color: `${t.ink}c0` }}>{r?.read ?? g.segment.blurb}</p>
+                <ul className="mt-2.5 space-y-1">
+                  {g.companies.slice(0, 6).map((co) => (
+                    <li key={co.domain} className="flex items-center gap-2 text-[12.5px]">
+                      <Favicon domain={co.domain} size={14} />
+                      <span className="truncate font-medium">{co.name}</span>
+                      {co.emerging && <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: t.accent, ...PRINT_EXACT }} />}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </SlideFrame>
   );

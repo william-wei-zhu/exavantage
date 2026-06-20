@@ -1,92 +1,95 @@
 # Exa Vantage
 
-AI market-intelligence for financial-services teams, as a firm-branded **slide
-deck**. Pick one of three desks, type a company or an industry/thesis, and get a
-tailored deck (cover → market map → lens-specific highlight → quant → signals →
-synthesis), shareable by link and exportable to PDF. Live at **exavantage.com**.
-Powered by Exa + Gemini.
+A partner-grade PE deal-origination deck, generated from one input. Enter a **platform
+company**; Exa Vantage returns a **9-slide KKR-branded slide deck** that recommends a buy-and-build
+(roll-up): the add-on universe, tiered targets, value-creation, risks, and a concrete ask. Shareable
+by link, exportable to PDF. Live at **exavantage.com**. Powered by Exa + Gemini.
 
 UI/UX follows William's Web App Building Standard
-(https://github.com/william-wei-zhu/web-app-building-standard) with one sanctioned
-deviation: **the frontend clones the Exa brand** (real Exa logo/header, fonts,
-palette from williamzhu.ai/exa-growth) so it reads as "made by Exa". See the
-standard's "Cloning a target brand" clause.
+(https://github.com/william-wei-zhu/web-app-building-standard) with one sanctioned deviation: **the
+app shell clones the Exa brand** (real Exa logo/header/footer) while the **deck clones KKR's own
+deck** (aubergine `#53284F`, teal accents, ribbon motif, KKR logo). See the standard's "Cloning a
+target brand" clause. No left-border accent-bar callouts (user preference); takeaways are slide
+headlines, not boxes.
 
-## Three desks, one engine, three lenses
+## One desk: KKR, Private Equity, buy-and-build
 
-One shared discovery engine; the selected firm sets a **lens** that reframes every
-slide and the quant.
-
-| Desk | Firm | Lens (`lib/firms.ts` `lens`) | Tailored to |
-|---|---|---|---|
-| Investment Bank | Goldman Sachs (navy, Source Serif) | `ipo` | IPO candidates & comparables (ECM) |
-| Private Equity | Blackstone (black, Playfair) | `buyout` | Acquisition targets & buy-and-build |
-| Venture Capital | a16z (burgundy, Space Grotesk) | `landscape` | Competitive landscape & emerging |
-
-Lens framing (titles, cover, highlight, examples, Exa-edge copy) lives in
-`lib/lenses.ts`. Firm brand tokens (palette, fonts, logo) in `lib/firms.ts`. Goldman
-uses its real SVG logo (`public/logos/goldman-sachs.svg`); Blackstone + a16z render
-as faithful brand wordmarks (`components/report/firm-logo.tsx`).
+Single firm/lens (`lib/firms.ts` = one KKR entry, lens `buyout`; `lib/lenses.ts` = one `buyout`
+lens). **Company-only input with a soft guard**: always company-mode discovery; if no company
+resolves, it nudges and still returns a best-effort set (never errors). KKR brand tokens in
+`lib/firms.ts`; the official logo is `public/logos/kkr.svg`.
 
 ## Pipeline (`lib/pipeline.ts`)
 
-Monolithic Next.js 16 on Vercel; "backend" = route handlers, Google Cloud provides
-Gemini + Firestore.
+Monolithic Next.js 16 on Vercel; "backend" = route handlers; Google Cloud provides Gemini + Firestore.
 
 ```
-resolve+route (Gemini) → discover (findSimilar + semantic search) → relevance gate
-  (Gemini, drops name-collisions) → emerging pass (Exa Agent, flagged) →
-  cluster + tear sheets (Gemini) → per-company intel (Exa text+highlights search) →
-  quant extraction (one batched Gemini pass, evidence-only) → exec summary (Gemini)
-  → stream NDJSON → save to Firestore → branded slide deck → PDF
+route (Gemini) → discover (findSimilar + semantic search) → relevance gate (Gemini, drops
+  name-collisions) → emerging pass (Exa Agent, flagged) → cluster + tear sheets (Gemini) →
+  per-company intel (Exa text+highlights) → quant extraction (batched Gemini, evidence-only) →
+  market context (Exa, cited, SECTOR not company) + deal thesis (Gemini) → stream NDJSON →
+  save to Firestore → 9-slide deck → PDF
 ```
 
 Key files:
-- `lib/exa.ts` — `discoverSimilarCompanies`, `searchCompanies`, `searchEmerging`,
-  `resolveCompanyDomain`, `agentDiscoverEmerging` (Exa Agent), `fetchCompanyIntel`
-  (text+highlights → facts for quant + a recent signal), `fetchSiteContent`.
-- `lib/gemini.ts` — `gemini-3.1-flash-lite`, seed 7, structured JSON; `UNTRUSTED_GUARD`
-  prompt-injection defense.
-- `lib/pipeline.ts` — `streamReport(query, emit, {firmId})`: relevance gate
-  (`filterRelevant`), clustering (`synthesizeLandscape`), batched quant (`extractQuant`).
-- `lib/metrics.ts` — derived analytics over `Company[]`: stage mix, segment sizes,
-  recency, emerging/Exa-edge count, and the per-lens index (IPO readiness /
-  fragmentation / momentum). Pure, no fabrication.
+- `lib/exa.ts` — discovery (`discoverSimilarCompanies`, `searchCompanies`, `searchEmerging`,
+  `agentDiscoverEmerging`), `fetchCompanyIntel`, `fetchSiteContent`, and `searchMarketSize`
+  (market pages, ranked credible-source-first via `CREDIBLE_MARKET_SOURCES`, tagged a tier).
+- `lib/gemini.ts` — **`gemini-3.5-flash`** (chosen over flash-lite for analysis quality), seed 7,
+  structured JSON; `UNTRUSTED_GUARD` prompt-injection defense.
+- `lib/pipeline.ts` — `streamReport(query, emit, {firmId})`. The two passes that drive the deck:
+  `fetchMarketContext(sectorHint, excludeCompany)` (one cited market stat, evidence-only, searches
+  the SECTOR and ignores the anchor's own revenue) and `analyzeOpportunity(...)` →
+  `DealThesis` (the strategic layer). Also `filterRelevant`, `synthesizeLandscape`, `extractQuant`.
+- `lib/metrics.ts` — derived analytics over `Company[]`: `lensIndex` (Fragmentation Index),
+  `opportunitySize` (the buildable prize), `ownershipSignal`, `visibleColumns` (hide sparse
+  comps columns), stage mix, exa-edge count. Pure, no fabrication.
 - `lib/store.ts` + `lib/firestore.ts` — persist/load reports for shareable `/r/[id]`.
 
-## Quant (honesty)
+## The deal thesis (`DealThesis` in `lib/types.ts`)
 
-Per-company `foundedYear / funding / stage / employees / region` are **estimated
-from public web** (Exa text → batched Gemini extraction), blank when not evident —
-never invented. The quant slide labels coverage ("N/M with funding data"). No
-revenue/valuation/multiples. Derived analytics + the lens index always populate.
+One Gemini pass turns the discovered set into a partner-grade recommendation, persisted on the
+`Report`. Fields: `recommendation` (one tight sentence + the wedge), `conviction`, `whyNow`,
+`fragmentation`, `segmentReads` (ranked) + `beachhead`, `anchor` (realistic role), `targets`
+(tiered, grounded `angle`), `valueLevers` (specific to the platform), `edge`, `risks`, `firstCalls`,
+`sequencing`, `ask`, and per-slide `takeaways` (the action-title headlines). `MarketContext` carries
+the cited `stat` + `sourceUrl` + `confidence` ("research firm" | "secondary").
 
-## Deck (`components/deck/Deck.tsx`, `components/report/`)
+## The 9 slides (`components/report/slides/*`, `report-deck.tsx`)
 
-`Deck` is a carousel (prev/next, dots, counter, keyboard; print = one slide per
-page). `report-deck.tsx` builds the `Slide[]` from the lens + report and renders it
-(used by the live stream and `/r/[id]`). Slides in `components/report/slides/*`
-read `firm.theme` so each deck is on-brand. Homepage desk cards in
-`components/report/desk-cards.tsx`.
+Insight-first, each leading with an **action-title headline** (the takeaway) and a small category
+kicker via `slide-frame.tsx`. Order: 1 Recommendation (`cover`) · 2 Why Now (`why-now-slide`) ·
+3 Fragmentation Thesis (`highlight-slide`) · 4 Where to Win (`map-slide`) · 5 The Anchor
+(`anchor-slide`) · 6 Priority Targets (`quant-slide`, tiered + evidence lines) · 7 Value Creation
+(`value-slide`) · 8 The Exa Edge (`signals-slide`) · 9 The Play (`synthesis-slide`, first calls +
+risks + ask). Primitives in `bits.tsx` (`StatBox`, `HeaderBand`, `Checklist`, `CompsTable`,
+`Ribbon`, `ConvictionBadge`, `TierBadge`, `SourceChip`, `ConfidenceChip`, `evidenceLine`). `Deck`
+is a carousel (prev/next, dots, keyboard; print = one slide per page).
 
-## Persistence + sharing
+## Loading + sharing
 
-Firestore (Native) in the `exavantage` GCP project, via a service-account key
-(`GCP_SERVICE_ACCOUNT_KEY` + `GCP_PROJECT_ID`). Reports are saved server-side at the
-end of the stream; `/r/[id]` renders the saved deck. Stateless otherwise.
+The deck is **gated behind a build state** (`building-deck.tsx`): while the ~90s pipeline runs,
+`report-experience.tsx` shows progress (phase + bar + teasers), then reveals the full deck on `done`
+with a "Deck ready" cue. Reports save server-side at stream end; `/r/[id]` renders the saved deck.
+
+## Honesty
+
+No invented revenue, valuations, multiples, growth rates, or market shares. The market stat is
+Exa-cited with a confidence label (or omitted); per-company quant is estimated-from-web and labeled,
+blank when unknown; `ownershipSignal` and the indices are derived and labeled illustrative; the
+recommendation is framed as analyst judgment.
 
 ## Environment
 
-Secrets in gitignored `.env.local` (+ Vercel). `.env.example` lists keys. Required:
-`EXA_API_KEY`, `GEMINI_API_KEY`. Firestore: `GCP_PROJECT_ID`, `GCP_SERVICE_ACCOUNT_KEY`.
-Analytics: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`. Cost control:
-`UPSTASH_REDIS_REST_URL/TOKEN`, `DAILY_REPORT_BUDGET`. Exa Agent: `EXA_AGENT_EMERGING`.
+Secrets in gitignored `.env.local` (+ Vercel). `.env.example` lists keys. Required: `EXA_API_KEY`,
+`GEMINI_API_KEY`. Firestore: `GCP_PROJECT_ID`, `GCP_SERVICE_ACCOUNT_KEY`. Analytics:
+`NEXT_PUBLIC_POSTHOG_KEY/HOST`. Cost control: `UPSTASH_REDIS_REST_URL/TOKEN`, `DAILY_REPORT_BUDGET`.
+Exa Agent: `EXA_AGENT_EMERGING`.
 
 ## Conventions
 
-- Next.js 16 has breaking changes — check `node_modules/next/dist/docs/` before
-  editing route/config code.
-- No em-dashes in copy. Real firm names are an intentional, approved exception to
-  the "no company names" rule (they are the product).
+- Next.js 16 has breaking changes — check `node_modules/next/dist/docs/` before editing route/config.
+- No em-dashes in copy. KKR is the intentional, approved exception to the "no company names" rule.
+- Never use left-border accent-bar callout boxes (user preference).
 - Footer is intentionally minimal ("Built by William Zhu · Powered by Exa").
 - Commit and push every change; keep this file and docs in sync.

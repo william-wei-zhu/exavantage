@@ -3,7 +3,7 @@ import type { Company, Report, Segment } from "@/lib/types";
 import type { Firm, FirmTheme } from "@/lib/firms";
 import type { LensCopy } from "@/lib/lenses";
 import { faviconUrl, urlForDomain } from "@/lib/util";
-import { ownershipSignal } from "@/lib/metrics";
+import { ownershipSignal, visibleColumns } from "@/lib/metrics";
 
 export type SlideProps = { report: Report; firm: Firm; lens: LensCopy };
 
@@ -162,6 +162,73 @@ export function Checklist({ items, t }: { items: string[]; t: FirmTheme }) {
   );
 }
 
+/** A grounded one-line evidence string from a target's own data (justifies the angle). */
+export function evidenceLine(c: Company): string {
+  return [
+    c.foundedYear ? `Founded ${c.foundedYear}` : null,
+    c.funding ? c.funding : "no disclosed funding",
+    c.employees ? `~${c.employees} staff` : null,
+    ownershipSignal(c),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/** Small credibility label shown next to a cited source. */
+export function ConfidenceChip({ level, t }: { level: "research firm" | "secondary"; t: FirmTheme }) {
+  const high = level === "research firm";
+  return (
+    <span
+      className="rounded-full px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-wider"
+      style={{ background: high ? `${t.green}1f` : `${t.ink}10`, color: high ? t.green : `${t.ink}80`, ...PRINT_EXACT }}
+    >
+      {high ? "research firm" : "secondary source"}
+    </span>
+  );
+}
+
+/** Conviction pill, colored by level (High = green, Medium = gold, Exploratory = lavender). */
+export function ConvictionBadge({ level, t }: { level: "High" | "Medium" | "Exploratory"; t: FirmTheme }) {
+  const color = level === "High" ? t.green : level === "Medium" ? t.gold : t.lavender;
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-white"
+      style={{ background: color, ...PRINT_EXACT }}
+    >
+      {level} conviction
+    </span>
+  );
+}
+
+/** Target tier label: Tier 1 = call now, 2 = next, 3 = watch. */
+export function TierBadge({ tier, t }: { tier: number; t: FirmTheme }) {
+  const bg = tier === 1 ? t.primary : tier === 2 ? t.secondary : `${t.ink}55`;
+  const label = tier === 1 ? "Tier 1 · Call now" : tier === 2 ? "Tier 2 · Next" : "Watch";
+  return (
+    <span
+      className="inline-flex items-center rounded-sm px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-white"
+      style={{ background: bg, ...PRINT_EXACT }}
+    >
+      {label}
+    </span>
+  );
+}
+
+/** A small cited-source chip linking to the page a stat came from. */
+export function SourceChip({ name, url, t }: { name: string; url: string; t: FirmTheme }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-medium hover:underline"
+      style={{ background: `${t.accent}1a`, color: t.secondary, ...PRINT_EXACT }}
+    >
+      source: {name}
+    </a>
+  );
+}
+
 /** Horizontal bar chart, hand-built (no chart library). */
 export function BarChart({ data, accent }: { data: { label: string; count: number }[]; accent: string }) {
   const max = Math.max(1, ...data.map((d) => d.count));
@@ -203,17 +270,18 @@ export function StatBlock({ value, label, sub, accent }: { value: string; label:
  * ownership is a clearly-estimated read, never asserted.
  */
 export function CompsTable({ companies, t }: { companies: Company[]; t: FirmTheme }) {
+  const cols = visibleColumns(companies);
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-[12.5px]">
         <thead>
           <tr style={{ background: t.primary, ...PRINT_EXACT }}>
             <Th first>Company</Th>
-            <Th>Stage</Th>
-            <Th>Funding</Th>
-            <Th>Founded</Th>
-            <Th>Employees</Th>
-            <Th>HQ</Th>
+            {cols.stage && <Th>Stage</Th>}
+            {cols.funding && <Th>Funding</Th>}
+            {cols.founded && <Th>Founded</Th>}
+            {cols.employees && <Th>Employees</Th>}
+            {cols.region && <Th>HQ</Th>}
             <Th>Ownership (est.)</Th>
           </tr>
         </thead>
@@ -226,11 +294,11 @@ export function CompsTable({ companies, t }: { companies: Company[]; t: FirmThem
                   <span className="font-semibold">{c.name}</span>
                 </span>
               </td>
-              <Td>{c.stage}</Td>
-              <Td>{c.funding}</Td>
-              <Td>{c.foundedYear ? String(c.foundedYear) : ""}</Td>
-              <Td>{c.employees}</Td>
-              <Td>{c.region}</Td>
+              {cols.stage && <Td>{c.stage}</Td>}
+              {cols.funding && <Td>{c.funding}</Td>}
+              {cols.founded && <Td>{c.foundedYear ? String(c.foundedYear) : ""}</Td>}
+              {cols.employees && <Td>{c.employees}</Td>}
+              {cols.region && <Td>{c.region}</Td>}
               <td className="py-2 pr-3">
                 <span className="font-medium" style={{ color: t.primary }}>{ownershipSignal(c)}</span>
               </td>

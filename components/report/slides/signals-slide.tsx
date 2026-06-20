@@ -1,43 +1,68 @@
-import type { SlideProps } from "./bits";
-import { Favicon, PRINT_EXACT } from "./bits";
+import type { PageInfo, SlideProps } from "./bits";
+import { Favicon, HeaderBand, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
 
-/** Recent signals across the set: the freshness Exa pulls from unstructured web. */
-export function SignalsSlide({ report, firm, lens }: SlideProps) {
+/** The Exa edge: off-market sourcing (lower multiples) + readiness signals (timing). */
+export function SignalsSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
-  const withSignals = report.companies.filter((c) => c.recentSignal);
+  const thesis = report.thesis;
+  const offDatabase = report.companies.filter((c) => c.emerging).slice(0, 5);
+  const withSignals = report.companies.filter((c) => c.recentSignal).slice(0, 5);
 
   return (
-    <SlideFrame firm={firm} lens={lens} title={lens.signalsTitle}>
-      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ fontFamily: t.headingFont, color: t.primary }}>
-        {lens.signalsTitle}
-      </h2>
-      <p className="mt-2 max-w-2xl text-[14px] leading-snug" style={{ color: `${t.ink}99` }}>{lens.signalsIntro}</p>
-
-      {withSignals.length > 0 ? (
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          {withSignals.map((c) => (
-            <div key={c.domain} className="flex gap-3 rounded-xl p-4" style={{ background: t.surface, ...PRINT_EXACT }}>
-              <Favicon domain={c.domain} size={26} className="mt-0.5" />
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
-                  {c.stage && <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: t.primary }}>{c.stage}</span>}
+    <SlideFrame
+      firm={firm}
+      lens={lens}
+      kicker={lens.signalsTitle}
+      title={thesis?.takeaways.edge ?? lens.signalsTitle}
+      intro={thesis?.edge}
+      page={page}
+      note="Off-database is inferred from low public-database coverage; signals are the freshest public results Exa surfaced."
+    >
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div>
+          <HeaderBand title="Off-database finds" t={t} right="price: off-auction" />
+          <div className="mt-3 space-y-2">
+            {offDatabase.length ? (
+              offDatabase.map((c) => (
+                <div key={c.domain} className="flex gap-2.5 rounded-md px-3 py-2" style={{ background: `${t.accent}12`, ...PRINT_EXACT }}>
+                  <Favicon domain={c.domain} size={18} className="mt-0.5" />
+                  <div className="min-w-0">
+                    <span className="text-[13px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
+                    <p className="text-[11.5px] leading-snug" style={{ color: `${t.ink}a8` }}>{c.oneLiner}</p>
+                  </div>
                 </div>
-                <p className="mt-1 text-[13px] leading-snug" style={{ color: `${t.ink}c0` }}>
-                  {c.recentSignalUrl ? (
-                    <a href={c.recentSignalUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{c.recentSignal}</a>
-                  ) : (
-                    c.recentSignal
-                  )}
-                </p>
-              </div>
-            </div>
-          ))}
+              ))
+            ) : (
+              <p className="text-[12.5px]" style={{ color: `${t.ink}80` }}>Set skews to catalogued names this run.</p>
+            )}
+          </div>
         </div>
-      ) : (
-        <p className="mt-8 text-[14px]" style={{ color: `${t.ink}80` }}>No fresh signals surfaced in the trailing window.</p>
-      )}
+        <div>
+          <HeaderBand title="Readiness signals" t={t} right="timing: who to call first" />
+          <div className="mt-3 space-y-2">
+            {withSignals.length ? (
+              withSignals.map((c) => (
+                <div key={c.domain} className="flex gap-2.5 rounded-md p-2.5" style={{ background: t.surface, ...PRINT_EXACT }}>
+                  <Favicon domain={c.domain} size={18} className="mt-0.5" />
+                  <div className="min-w-0">
+                    <span className="text-[13px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
+                    <p className="text-[11.5px] leading-snug" style={{ color: `${t.ink}b0` }}>
+                      {c.recentSignalUrl ? (
+                        <a href={c.recentSignalUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{c.recentSignal}</a>
+                      ) : (
+                        c.recentSignal
+                      )}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-[12.5px]" style={{ color: `${t.ink}80` }}>No fresh signals in the trailing window.</p>
+            )}
+          </div>
+        </div>
+      </div>
     </SlideFrame>
   );
 }

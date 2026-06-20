@@ -126,3 +126,54 @@ export function platformCount(report: Report): number {
     ["Growth", "Late", "Public"].includes(stageBucket(c.stage)),
   ).length;
 }
+
+/** Low end of an employees band string like "51-200" / "1,000+" / "~200". */
+function employeesLow(s?: string): number | undefined {
+  if (!s) return undefined;
+  const m = s.replace(/,/g, "").match(/\d+/);
+  return m ? parseInt(m[0], 10) : undefined;
+}
+
+/**
+ * Sizes the buildable roll-up from the discovered set (no invention): acquirable
+ * independents (excludes any public name), and a conservative combined headcount
+ * floor summed from the low end of each known employees band, with coverage.
+ */
+export function opportunitySize(report: Report): {
+  acquirable: number;
+  segments: number;
+  employeesKnown: number;
+  total: number;
+  headcountFloor: number;
+} {
+  const cos = report.companies;
+  const acquirable = cos.filter((c) => stageBucket(c.stage) !== "Public").length;
+  const lows = cos.map((c) => employeesLow(c.employees)).filter((n): n is number => Boolean(n));
+  return {
+    acquirable,
+    segments: report.segments.length,
+    employeesKnown: lows.length,
+    total: cos.length,
+    headcountFloor: lows.reduce((a, b) => a + b, 0),
+  };
+}
+
+/** Which optional comps columns to show: those with >= 30% coverage (keeps tables dense). */
+export function visibleColumns(companies: Company[]): {
+  stage: boolean;
+  funding: boolean;
+  founded: boolean;
+  employees: boolean;
+  region: boolean;
+} {
+  const n = companies.length || 1;
+  const cov = (pred: (c: Company) => boolean) => companies.filter(pred).length / n;
+  const ok = (frac: number) => frac >= 0.3;
+  return {
+    stage: ok(cov((c) => Boolean(c.stage))),
+    funding: ok(cov((c) => Boolean(c.funding))),
+    founded: ok(cov((c) => Boolean(c.foundedYear))),
+    employees: ok(cov((c) => Boolean(c.employees))),
+    region: ok(cov((c) => Boolean(c.region))),
+  };
+}

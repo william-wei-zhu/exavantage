@@ -13,12 +13,18 @@ export type LensCopy = {
   product: string;
   /** Cover title prefix, combined with the subject. */
   coverLine: (subject: string) => string;
+  /** Slide 2: market context + catalysts. */
+  whyNowTitle: string;
   mapTitle: string;
   mapIntro: string;
-  /** The roll-up thesis highlight slide. */
+  /** Slide 3: the fragmentation thesis. */
   highlightTitle: string;
   highlightIntro: string;
+  /** Slide 5: the platform candidate. */
+  anchorTitle: string;
   quantTitle: string;
+  /** Slide 7: value creation. */
+  valueTitle: string;
   signalsTitle: string;
   signalsIntro: string;
   synthesisTitle: string;
@@ -41,14 +47,17 @@ export const LENSES: Record<LensId, LensCopy> = {
     desk: "Deal Origination",
     product: "Buy-and-Build Origination",
     coverLine: (s) => `Add-On Universe: ${s}`,
-    mapTitle: "Target Universe",
+    whyNowTitle: "Why Now",
+    mapTitle: "Where to Win",
     mapIntro:
-      "The addressable set, clustered into the sub-segments a platform could consolidate: core add-ons, adjacent capabilities, and geographic expansion.",
-    highlightTitle: "The Roll-Up Thesis",
+      "The addressable set, clustered into the sub-segments a platform could consolidate, ranked by where to start.",
+    highlightTitle: "The Fragmentation Thesis",
     highlightIntro:
       "Is this consolidatable? A fragmented field of sub-scale, mostly founder-owned players, with no dominant consolidator, is the setup for a buy-and-build.",
-    quantTitle: "Add-On Shortlist",
-    signalsTitle: "Off-Market & Ready",
+    anchorTitle: "The Anchor",
+    quantTitle: "Priority Targets",
+    valueTitle: "Value Creation",
+    signalsTitle: "The Exa Edge",
     signalsIntro:
       "The proprietary names the databases never indexed, plus the fresh signals that say which target to call first.",
     synthesisTitle: "The Play",

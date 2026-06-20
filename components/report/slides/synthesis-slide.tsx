@@ -1,50 +1,62 @@
-import type { SlideProps } from "./bits";
-import { summaryParagraphs, PRINT_EXACT } from "./bits";
+import type { PageInfo, SlideProps } from "./bits";
+import { HeaderBand, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { lensIndex } from "@/lib/metrics";
 
-/** The closing memo: the synthesis, framed for the desk. Final slide. */
-export function SynthesisSlide({ report, firm, lens }: SlideProps) {
+/** The play: first calls, sequencing, risks, and the ask. Final slide. */
+export function SynthesisSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
-  const idx = lensIndex(firm.lens, report);
-  const paras = summaryParagraphs(report.executiveSummary);
+  const thesis = report.thesis;
+  const calls = thesis?.firstCalls ?? [];
+  const risks = thesis?.risks ?? [];
 
   return (
-    <SlideFrame firm={firm} lens={lens} title={lens.synthesisTitle}>
-      <h2 className="text-2xl font-bold tracking-tight sm:text-3xl" style={{ fontFamily: t.headingFont, color: t.primary }}>
-        {lens.synthesisTitle}
-      </h2>
-
-      <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_240px]">
-        <div className="space-y-4 text-[15.5px] leading-relaxed" style={{ fontFamily: t.headingFont }}>
-          {paras.length ? paras.map((p, i) => <p key={i}>{p}</p>) : <p style={{ color: `${t.ink}66` }}>Synthesizing…</p>}
+    <SlideFrame
+      firm={firm}
+      lens={lens}
+      kicker={lens.synthesisTitle}
+      title={thesis?.takeaways.play ?? lens.synthesisTitle}
+      page={page}
+      note="Informational only, not investment advice. Prepared with Exa Vantage · Powered by Exa and Gemini."
+    >
+      <div className="grid gap-7 lg:grid-cols-[1.3fr_1fr]">
+        <div>
+          <div className="mb-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: t.primary }}>First calls</div>
+          <ol className="space-y-2">
+            {calls.map((c, i) => (
+              <li key={i} className="flex gap-3 rounded-md px-3 py-2" style={{ background: t.surface, ...PRINT_EXACT }}>
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white" style={{ background: t.primary, ...PRINT_EXACT }}>{i + 1}</span>
+                <div>
+                  <span className="text-[13.5px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
+                  <p className="text-[12px] leading-snug" style={{ color: `${t.ink}b0` }}>{c.why}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          {thesis?.sequencing && (
+            <p className="mt-3 text-[12.5px] leading-snug" style={{ color: `${t.ink}99` }}>
+              <span className="font-semibold" style={{ color: t.primary }}>Sequencing: </span>{thesis.sequencing}
+            </p>
+          )}
         </div>
-
-        <aside className="rounded-xl p-5" style={{ background: t.surface, ...PRINT_EXACT }}>
-          <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: `${t.ink}80` }}>{idx.label}</div>
-          <div className="mt-1 text-4xl font-bold tabular-nums" style={{ color: t.primary }}>{idx.score}<span className="text-lg opacity-50"> / 100</span></div>
-          <p className="mt-2 text-[12.5px] leading-snug" style={{ color: `${t.ink}99` }}>{idx.caption}</p>
-          <div className="my-4 h-px" style={{ background: `${t.ink}15` }} />
-          <dl className="space-y-1.5 text-[12.5px]">
-            <Row k="Companies mapped" v={String(report.companies.length)} t={t} />
-            <Row k="Sub-segments" v={String(report.segments.length)} t={t} />
-            <Row k="Under the radar" v={String(report.companies.filter((c) => c.emerging).length)} t={t} />
-          </dl>
-        </aside>
+        <div>
+          <HeaderBand title="Key risks · diligence" t={t} />
+          <ul className="mt-3 space-y-2">
+            {risks.map((r, i) => (
+              <li key={i} className="flex gap-2 text-[12.5px] leading-snug" style={{ color: `${t.ink}c0` }}>
+                <span style={{ color: t.gold }}>&#9650;</span>
+                {r}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
 
-      <p className="mt-8 border-t pt-4 text-[11px]" style={{ borderColor: `${t.ink}15`, color: `${t.ink}80` }}>
-        Prepared with Exa Vantage · Powered by Exa and Gemini · {lens.exaEdge} Informational only, not investment advice.
-      </p>
+      {thesis?.ask && (
+        <div className="mt-6 rounded-md px-5 py-3.5 text-white" style={{ background: t.primary, ...PRINT_EXACT }}>
+          <span className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-80">The ask</span>
+          <p className="mt-0.5 text-[15px] font-semibold leading-snug">{thesis.ask}</p>
+        </div>
+      )}
     </SlideFrame>
-  );
-}
-
-function Row({ k, v, t }: { k: string; v: string; t: SlideProps["firm"]["theme"] }) {
-  return (
-    <div className="flex items-baseline justify-between">
-      <dt style={{ color: `${t.ink}99` }}>{k}</dt>
-      <dd className="font-bold tabular-nums" style={{ color: t.ink }}>{v}</dd>
-    </div>
   );
 }
