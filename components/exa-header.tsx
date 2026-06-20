@@ -22,11 +22,11 @@ export function ExaHeader() {
           <ExaVantageLockup />
           <span className="hidden h-5 w-px bg-border sm:block" aria-hidden />
           <span className="hidden items-center gap-1.5 sm:inline-flex">
-            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            <span className="text-[13px] font-medium uppercase tracking-wider text-muted-foreground">
               for
             </span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logos/kkr.svg" alt="KKR" className="h-[15px] w-auto" />
+            <img src="/logos/kkr.svg" alt="KKR" className="h-[18px] w-auto" />
           </span>
         </Link>
 

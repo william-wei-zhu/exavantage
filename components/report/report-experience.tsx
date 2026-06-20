@@ -99,11 +99,11 @@ export function ReportExperience() {
               {busy ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Finding
+                  Generating
                 </>
               ) : (
                 <>
-                  Find companies to acquire
+                  Generate report
                   <ArrowRight className="h-5 w-5" />
                 </>
               )}

@@ -10,7 +10,7 @@ import { MiniPipeline, RollupArt, HiddenArt, ExaArt, FilterArt, DeckArt } from "
 export const metadata: Metadata = {
   title: "How it works",
   description:
-    "How Exa Vantage finds the companies worth acquiring that no database has, built for KKR.",
+    "How Exa Vantage finds the acquisition targets and makes the case for the deal, built for KKR.",
 };
 
 const AUB = "#53284F";
@@ -78,7 +78,7 @@ export default function AboutPage() {
           <Reveal>
             <p className="section-label" style={{ color: AUB }}>Behind the scenes · built for KKR</p>
             <h1 className="mt-4 max-w-2xl font-heading text-5xl font-bold leading-[1.0] tracking-tight sm:text-7xl">
-              How Exa finds the companies no database has.
+              How Exa finds the targets and makes the case.
             </h1>
             <p className="mt-6 max-w-xl text-xl leading-relaxed text-foreground/85">
               You enter one company. About 90 seconds later you have a deck of the smaller companies
