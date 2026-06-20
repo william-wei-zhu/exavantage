@@ -64,7 +64,7 @@ export function ReportExperience() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Enter one company. We find the smaller ones worth acquiring around it."
+                placeholder="Enter a company name."
                 maxLength={160}
                 disabled={busy}
                 className="h-14 w-full rounded-lg border border-input bg-background pl-12 pr-4 text-base outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 disabled:opacity-60"
