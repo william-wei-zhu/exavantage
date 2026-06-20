@@ -112,7 +112,10 @@ plays once and is static under `prefers-reduced-motion`. **`app/about/page.tsx` 
 
 Secrets in gitignored `.env.local` (+ Vercel). `.env.example` lists keys. Required: `EXA_API_KEY`,
 `GEMINI_API_KEY`. Firestore: `GCP_PROJECT_ID`, `GCP_SERVICE_ACCOUNT_KEY`. Analytics:
-`NEXT_PUBLIC_POSTHOG_KEY/HOST`. Cost control: `UPSTASH_REDIS_REST_URL/TOKEN`, `DAILY_REPORT_BUDGET`.
+`NEXT_PUBLIC_POSTHOG_KEY/HOST`. Cost control: `UPSTASH_REDIS_REST_URL/TOKEN`,
+`HOURLY_REPORT_BUDGET` (default 50), `DAILY_REPORT_BUDGET` (default 500). The hourly/daily caps are
+global kill switches enforced only when Upstash is configured (`lib/budget.ts`); per-IP rate limits
+(`lib/ratelimit.ts`) fall back to a best-effort in-memory limiter without it.
 Exa Agent: `EXA_AGENT_EMERGING`.
 
 ## Conventions

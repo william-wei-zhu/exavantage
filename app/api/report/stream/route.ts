@@ -1,6 +1,6 @@
 import { streamReport } from "@/lib/pipeline";
 import { clientIp, isUpstashConfigured, rateLimit } from "@/lib/ratelimit";
-import { AtCapacityError, overDailyBudget, recordReportBuild } from "@/lib/budget";
+import { AtCapacityError, overBudget, recordReportBuild } from "@/lib/budget";
 import type { StreamEvent } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -43,13 +43,13 @@ export async function GET(req: Request) {
     );
   }
 
-  if (await overDailyBudget()) {
+  if (await overBudget()) {
     return Response.json(
-      { error: "The tool is at capacity for today. Please try again tomorrow." },
+      { error: "The tool is at capacity right now. Please try again later." },
       { status: 503 },
     );
   }
-  // Count this build toward the daily budget (best-effort, no-op without Redis).
+  // Count this build toward the hourly + daily budgets (best-effort, no-op without Redis).
   if (isUpstashConfigured()) await recordReportBuild();
 
   const encoder = new TextEncoder();
