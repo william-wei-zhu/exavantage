@@ -29,11 +29,14 @@ export async function saveReport(
   report: Report,
   firmId: string,
   rawQuery?: string,
+  /** When set (and valid), overwrite this existing report id instead of minting a
+   *  new one. Used by "Regenerate" so a shared /r/[id] link keeps working. */
+  existingId?: string,
 ): Promise<string | null> {
   const fs = db();
   if (!fs) return null;
   try {
-    const id = newId();
+    const id = existingId && /^[a-z0-9]{8,32}$/i.test(existingId) ? existingId : newId();
     const nameKeys = Array.from(
       new Set(
         [rawQuery, report.anchor?.name, report.query]
@@ -105,6 +108,24 @@ export async function findExistingReport(
     console.error("[store] findExistingReport failed:", (e as Error)?.message);
     return null;
   }
+}
+
+/** Delete every report in the collection (batched). Returns the count removed.
+ *  Used by the one-off `scripts/clear-reports.ts`; safe no-op without Firestore. */
+export async function deleteAllReports(): Promise<number> {
+  const fs = db();
+  if (!fs) return 0;
+  let total = 0;
+  // Loop in pages so we stay well under Firestore's per-batch limit.
+  for (;;) {
+    const snap = await fs.collection(COLLECTION).limit(300).get();
+    if (snap.empty) break;
+    const batch = fs.batch();
+    snap.docs.forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+    total += snap.size;
+  }
+  return total;
 }
 
 /** Load a saved report by id, or null if missing / Firestore unavailable. */

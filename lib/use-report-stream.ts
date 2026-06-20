@@ -52,7 +52,7 @@ export function useReportStream() {
     setState(EMPTY);
   }, []);
 
-  const run = useCallback(async (query: string, firmId?: string) => {
+  const run = useCallback(async (query: string, firmId?: string, opts?: { fresh?: boolean; replaceId?: string }) => {
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
@@ -61,6 +61,8 @@ export function useReportStream() {
     try {
       const qs = new URLSearchParams({ q: query });
       if (firmId) qs.set("firm", firmId);
+      if (opts?.fresh) qs.set("fresh", "1");
+      if (opts?.replaceId) qs.set("replace", opts.replaceId);
       const res = await fetch(`/api/report/stream?${qs.toString()}`, {
         signal: ac.signal,
       });

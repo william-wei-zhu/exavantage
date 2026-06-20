@@ -556,15 +556,18 @@ const MAX_COMPANIES = 14;
 export async function streamReport(
   query: string,
   emit: Emit,
-  opts: { firmId?: string } = {},
+  opts: { firmId?: string; fresh?: boolean; replaceId?: string } = {},
 ): Promise<void> {
   // Generation cache: if a deck for this exact input already exists, open it
-  // instantly instead of re-running the ~100s pipeline.
-  await emit({ type: "progress", phase: "Checking for a saved deck" });
-  const cachedByInput = await findExistingReport(query).catch(() => null);
-  if (cachedByInput) {
-    await emit({ type: "cached", reportId: cachedByInput });
-    return;
+  // instantly instead of re-running the ~100s pipeline. "Regenerate" sets `fresh`
+  // to skip the cache and rebuild from scratch.
+  if (!opts.fresh) {
+    await emit({ type: "progress", phase: "Checking for a saved deck" });
+    const cachedByInput = await findExistingReport(query).catch(() => null);
+    if (cachedByInput) {
+      await emit({ type: "cached", reportId: cachedByInput });
+      return;
+    }
   }
 
   await emit({ type: "progress", phase: "Routing your request" });
@@ -582,10 +585,12 @@ export async function streamReport(
 
   // Second cache check, now that the official name + domain are resolved (catches
   // alternate phrasings of the same company that the raw-input check missed).
-  const cachedByResolved = await findExistingReport(restated, anchorDomain).catch(() => null);
-  if (cachedByResolved) {
-    await emit({ type: "cached", reportId: cachedByResolved });
-    return;
+  if (!opts.fresh) {
+    const cachedByResolved = await findExistingReport(restated, anchorDomain).catch(() => null);
+    if (cachedByResolved) {
+      await emit({ type: "cached", reportId: cachedByResolved });
+      return;
+    }
   }
 
   await emit({ type: "meta", mode, query: restated, anchor });
@@ -778,7 +783,7 @@ export async function streamReport(
   };
   let reportId: string | undefined;
   try {
-    reportId = (await saveReport(report, opts.firmId || "kkr", query)) ?? undefined;
+    reportId = (await saveReport(report, opts.firmId || "kkr", query, opts.replaceId)) ?? undefined;
   } catch {
     reportId = undefined;
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Download, Link2, Check } from "lucide-react";
+import { Download, Link2, Check, RefreshCw } from "lucide-react";
 import { Deck, type Slide } from "@/components/deck/Deck";
 import type { PageInfo } from "./slides/bits";
 import { Button } from "@/components/ui/button";
@@ -87,6 +87,15 @@ function Toolbar({ firm, report, shareId }: { firm: Firm; report: Report; shareI
     track("pdf_exported", { firm: firm.id, mode: report.mode, query: report.query });
     if (typeof window !== "undefined") window.print();
   };
+  const onRegenerate = () => {
+    const q = report.query?.trim();
+    if (!q || typeof window === "undefined") return;
+    if (!window.confirm("Regenerate this deck from scratch? It rebuilds with fresh data and replaces the current content at this link.")) return;
+    track("report_regenerate_clicked", { firm: firm.id, query: q });
+    const qs = new URLSearchParams({ q, fresh: "1" });
+    if (shareId) qs.set("replace", shareId);
+    window.location.href = `/?${qs.toString()}`;
+  };
   const onCopy = async () => {
     if (!shareId) return;
     const url = `${typeof window !== "undefined" ? window.location.origin : ""}/r/${shareId}`;
@@ -102,6 +111,10 @@ function Toolbar({ firm, report, shareId }: { firm: Firm; report: Report; shareI
 
   return (
     <div className="flex items-center justify-center gap-2">
+      <Button variant="secondary" size="sm" onClick={onRegenerate}>
+        <RefreshCw className="h-4 w-4" />
+        Regenerate
+      </Button>
       {shareId && (
         <Button variant="secondary" size="sm" onClick={onCopy}>
           {copied ? <Check className="h-4 w-4" /> : <Link2 className="h-4 w-4" />}

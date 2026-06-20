@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Loader2, Search } from "lucide-react";
@@ -24,6 +24,24 @@ export function ReportExperience() {
   const { state, run, reset } = useReportStream();
   const fade = useFadeUpProps();
   const router = useRouter();
+  const startedFromUrl = useRef(false);
+
+  // "Regenerate" from a saved deck lands here as /?q=<query>&fresh=1&replace=<id>.
+  // Auto-start a from-scratch rebuild that overwrites the same id, then clean the
+  // URL so a refresh doesn't retrigger it.
+  useEffect(() => {
+    if (startedFromUrl.current || typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const q = (sp.get("q") || "").trim();
+    if (q && sp.get("fresh") === "1") {
+      startedFromUrl.current = true;
+      const replace = (sp.get("replace") || "").trim() || undefined;
+      window.history.replaceState(null, "", "/");
+      setInput(q);
+      track("report_regenerated", { firm: firm.id, query: q });
+      run(q, firm.id, { fresh: true, replaceId: replace });
+    }
+  }, [run]);
 
   // When the report saves, reflect its shareable URL in the address bar so a
   // refresh loads the persisted /r/[id] page and the link is copy-pasteable.
