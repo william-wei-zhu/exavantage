@@ -157,3 +157,157 @@
     break-before: auto;
   }
 }
+
+/* ---- How-it-works walk-through motion (ported from pbcindex /docs) ----
+   One-shot, scroll-triggered: sections fade+rise, line art paints itself once,
+   illustrations settle into place. Disabled under prefers-reduced-motion. */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Line art that paints itself once (paths set pathLength=1). */
+.draw {
+  stroke-dasharray: var(--dash, 1);
+  stroke-dashoffset: var(--dash, 1);
+}
+.is-visible .draw {
+  animation: docs-draw 1.2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+@keyframes docs-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Fills, highlights, labels fade up after the outlines draw. */
+.fade-art {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.is-visible .fade-art {
+  animation: docs-fade 0.7s ease forwards;
+  animation-delay: var(--d, 0.4s);
+}
+@keyframes docs-fade {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Exa magnifier: one slow sweep across the documents. */
+.sweep {
+  transform-box: fill-box;
+}
+.is-visible .sweep {
+  animation: docs-sweep 2.1s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+}
+@keyframes docs-sweep {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(116px);
+  }
+}
+
+/* Spark: scale + settle. */
+.spark-in {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.is-visible .spark-in {
+  animation: docs-spark 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes docs-spark {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-30deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* Seal: press down and settle, like a stamp. */
+.press {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+}
+.is-visible .press {
+  animation: docs-press 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes docs-press {
+  0% {
+    opacity: 0;
+    transform: translateY(-26px) scale(1.18);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(3px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Connector lines in the mini-pipeline grow from the left, staggered. */
+.pipe-line {
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+  transition-delay: var(--d, 0s);
+}
+.is-visible .pipe-line {
+  transform: scaleX(1);
+}
+
+/* Quiet hover lift for cards on the walk-through. */
+.lift {
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.lift:hover {
+  transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .fade-art {
+    opacity: 1;
+    transform: none;
+  }
+  .draw {
+    stroke-dashoffset: 0;
+  }
+  .pipe-line {
+    transform: none;
+    transition: none;
+  }
+  .is-visible .draw,
+  .is-visible .fade-art,
+  .is-visible .sweep,
+  .is-visible .spark-in,
+  .is-visible .press {
+    animation: none;
+  }
+}

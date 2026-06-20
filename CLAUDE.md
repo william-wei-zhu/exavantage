@@ -79,6 +79,18 @@ Exa-cited with a confidence label (or omitted); per-company quant is estimated-f
 blank when unknown; `ownershipSignal` and the indices are derived and labeled illustrative; the
 recommendation is framed as analyst judgment.
 
+## Marketing chrome (co-branded "Exa Vantage, for KKR")
+
+Clean white Exa shell, co-branded for KKR. `components/exa-header.tsx` = enlarged Exa Vantage lockup
+(`exa-logo.tsx`) + a "for KKR" co-brand (the `public/logos/kkr.svg`) + a single "How it works" link
+(no Pricing/Docs/About-Exa). Homepage hero (`app/page.tsx`): "Exa Vantage · built for KKR" eyebrow,
+the **"Your vantage on every deal."** tagline, a plain-English subhead; `report-experience.tsx` has a
+3-up icon value band. **`app/about/page.tsx` is a visual "acts" walk-through** (modeled on pbcindex's
+`/docs`): scroll-revealed (`components/reveal.tsx` + the `.reveal/.draw/.fade-art/.sweep/.press/
+.pipe-line` motion in `globals.css`), hand-drawn animated SVG line-art in aubergine/teal
+(`components/docs-art.tsx`), explaining the PE roll-up job in plain English + precise tech names
+("findSimilar for acquisition targets"). Reduced-motion shows everything statically.
+
 ## Environment
 
 Secrets in gitignored `.env.local` (+ Vercel). `.env.example` lists keys. Required: `EXA_API_KEY`,

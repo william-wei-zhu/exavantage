@@ -1,19 +1,11 @@
 import Link from "next/link";
 import { ExaVantageLockup } from "@/components/exa-logo";
 
-/** Real Exa nav destinations, so the header reads as the genuine site. */
-const NAV_LINKS = [
-  { href: "/about", label: "How it works", internal: true },
-  { href: "https://exa.ai/pricing", label: "Pricing" },
-  { href: "https://docs.exa.ai", label: "Docs" },
-  { href: "https://exa.ai/about", label: "About Exa" },
-];
-
 /**
- * Exa-style top bar, ported from williamzhu.ai/exa-growth: white, fixed, the Exa
- * wordmark (sub-branded "Vantage") on the left, a few nav links, a black CTA on
- * the right. Reads `--exa-panel-w` (default 0px) so it can shrink beside a side
- * panel; inert here.
+ * Top bar: the Exa shell, co-branded for KKR. Left = the enlarged "Exa Vantage"
+ * lockup + a "for KKR" co-brand (the real KKR logo), so every page reads as
+ * "Exa Vantage, built for KKR". Right = a single "How it works" link. White,
+ * fixed; reads `--exa-panel-w` so it can shrink beside a side panel (inert here).
  */
 export function ExaHeader() {
   return (
@@ -22,42 +14,28 @@ export function ExaHeader() {
       className="fixed top-0 z-50 border-b border-border bg-background"
     >
       <nav className="mx-auto flex h-14 max-w-[1040px] items-center justify-between px-5 md:px-6">
-        <Link href="/" className="flex items-center" aria-label="Exa Vantage home">
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 sm:gap-3"
+          aria-label="Exa Vantage, built for KKR"
+        >
           <ExaVantageLockup />
+          <span className="hidden h-5 w-px bg-border sm:block" aria-hidden />
+          <span className="hidden items-center gap-1.5 sm:inline-flex">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              for
+            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logos/kkr.svg" alt="KKR" className="h-[15px] w-auto" />
+          </span>
         </Link>
 
-        <div className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((link) =>
-            link.internal ? (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="rounded px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-[#f5f5f5]"
-              >
-                {link.label}
-              </Link>
-            ) : (
-              <a
-                key={link.href}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-[#f5f5f5]"
-              >
-                {link.label}
-              </a>
-            ),
-          )}
-        </div>
-
-        <a
-          href="https://dashboard.exa.ai/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded bg-black px-3.5 py-2 text-sm font-medium text-white transition-colors hover:bg-[#262626]"
+        <Link
+          href="/about"
+          className="rounded px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-[#f5f5f5]"
         >
-          Try the API
-        </a>
+          How it works
+        </Link>
       </nav>
     </header>
   );

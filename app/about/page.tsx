@@ -1,132 +1,158 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import Link from "next/link";
+import { Globe, Sparkles, Triangle, Code2, Database, LineChart } from "lucide-react";
 import { ExaHeader } from "@/components/exa-header";
 import { SiteFooter } from "@/components/site-footer";
+import { Reveal } from "@/components/reveal";
+import { MiniPipeline, RollupArt, HiddenArt, ExaArt, FilterArt, DeckArt } from "@/components/docs-art";
 
 export const metadata: Metadata = {
   title: "How it works",
   description:
-    "What Exa Vantage is, who it is for, and the exact pipeline behind each deck.",
+    "How Exa Vantage finds the companies worth acquiring that no database has, built for KKR.",
 };
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Enter a platform company",
-    plain:
-      "Type one platform company. Exa Vantage maps the proprietary add-on universe a deal team would build a roll-up around.",
-    tech: "Gemini resolves the company and its domain. Company-only with a soft guard: if no single company resolves, it nudges and still returns a best-effort set, never an error.",
-  },
-  {
-    n: "02",
-    title: "Discover, then filter for relevance",
-    plain:
-      "We find the companies that matter, including the founder-owned long tail the big databases never catalogued, and drop the look-alikes that only share a name.",
-    tech: "Exa findSimilar plus a semantic search built from the seed's real business; a Gemini relevance gate removes name-collisions, judging by what each company does.",
-  },
-  {
-    n: "03",
-    title: "Surface what's emerging",
-    plain:
-      "A deep-research pass looks for newer, lower-profile companies the structured databases lag on: the proprietary, off-auction targets.",
-    tech: "Exa Agent deep research (effort-dialed) finds under-the-radar names; falls back to a freshness-tuned Exa search.",
-  },
-  {
-    n: "04",
-    title: "Cluster, profile, and quantify",
-    plain:
-      "We group targets into consolidation sub-segments, write a qualification for each, and pull the numbers: funding, founded year, stage, headcount, HQ.",
-    tech: "A Gemini pass builds the clusters. A per-company Exa search pulls page text, and one batched Gemini pass extracts quant from evidence only (blank when unknown). No invented figures.",
-  },
-  {
-    n: "05",
-    title: "Pull a cited market stat",
-    plain:
-      "We attach one market-size number for the sector, with its source and a confidence label, never the platform company's own revenue.",
-    tech: "Exa retrieves market-research pages (ranked credible-source-first); a Gemini evidence-only pass extracts a total-market figure and copies the real source URL, or omits it.",
-  },
-  {
-    n: "06",
-    title: "Write the deal thesis, render the deck",
-    plain:
-      "One analysis pass turns the set into a recommendation: conviction, why-now, the anchor, tiered targets with angles, value creation, risks, and the ask. It renders as a 9-slide KKR-branded deck.",
-    tech: "Gemini 3.5 Flash produces a structured DealThesis grounded only in the discovered data. The deck builds behind a progress view, saves to Firestore for a shareable /r/[id] page, and prints one slide per page.",
-  },
-];
+const AUB = "#53284F";
+
+function Act({
+  num,
+  title,
+  children,
+  tag,
+  art,
+  flip = false,
+  emphasize = false,
+}: {
+  num: string;
+  title: string;
+  children: ReactNode;
+  tag: string;
+  art: ReactNode;
+  flip?: boolean;
+  emphasize?: boolean;
+}) {
+  return (
+    <Reveal className="mt-16 first:mt-12">
+      <div className="grid items-center gap-8 sm:grid-cols-2 sm:gap-12">
+        <div className={flip ? "sm:order-2" : ""}>
+          <div
+            className={`lift flex items-center justify-center rounded-xl border p-6 ${
+              emphasize ? "bg-[#16A9C8]/[0.06]" : "border-border bg-card"
+            }`}
+            style={emphasize ? { borderColor: "#16A9C866" } : undefined}
+          >
+            <div className="w-full max-w-[300px]">{art}</div>
+          </div>
+        </div>
+        <div className={flip ? "sm:order-1" : ""}>
+          <p className="font-heading text-5xl font-bold leading-none" style={{ color: AUB }}>{num}</p>
+          <h2 className="mt-3 font-heading text-3xl font-bold leading-tight sm:text-4xl">{title}</h2>
+          <p className="mt-3 text-lg leading-relaxed text-foreground/85">{children}</p>
+          <p className="mt-4 font-mono text-xs leading-relaxed text-muted-foreground">{tag}</p>
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function StackCard({ icon, name, spec }: { icon: ReactNode; name: string; spec: string }) {
+  return (
+    <div className="lift flex items-start gap-3 rounded-lg border border-border bg-card px-4 py-3.5">
+      <span className="mt-0.5" style={{ color: AUB }}>{icon}</span>
+      <div>
+        <p className="font-heading text-xl font-bold leading-none">{name}</p>
+        <p className="mt-1.5 font-mono text-xs leading-relaxed text-muted-foreground">{spec}</p>
+      </div>
+    </div>
+  );
+}
 
 export default function AboutPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <ExaHeader />
       <main className="flex-1 pt-14">
-        <div className="mx-auto w-full max-w-[820px] px-5 py-12 md:px-6 md:py-16">
-          <p className="section-label mb-4 text-primary">How it works</p>
-          <h1 className="font-heading text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
-            Exa as your AI deal-origination analyst
-          </h1>
-          <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
-            Exa Vantage is built for the private-equity associate sourcing a
-            buy-and-build. Enter one platform company and it returns the
-            proprietary add-on universe as a partner-grade recommendation: the
-            tiered targets, the value-creation thesis, the risks, and the ask. It
-            compresses the slow first 80% of origination without replacing the
-            associate&apos;s judgment.
-          </p>
-
-          <div className="mt-6 rounded-xl bg-secondary px-5 py-4 text-[15px] text-secondary-foreground">
-            <span className="font-semibold">The whole flow in one line:</span>{" "}
-            enter a platform → Exa discovers the targets → filter for relevance →
-            surface the off-database names → cluster, profile, and quantify →
-            cite the market → Gemini writes the deal thesis → a 9-slide KKR deck,
-            shareable and exportable.
-          </div>
-
-          <div className="mt-12 space-y-px overflow-hidden rounded-xl border border-border">
-            {STEPS.map((s) => (
-              <div key={s.n} className="bg-card px-5 py-6 sm:px-7">
-                <div className="flex items-baseline gap-3">
-                  <span className="font-mono text-sm font-semibold text-primary">
-                    {s.n}
-                  </span>
-                  <h2 className="font-heading text-xl font-bold">{s.title}</h2>
-                </div>
-                <p className="mt-2 text-[16px] text-foreground">{s.plain}</p>
-                <p className="mt-2 text-[14px] leading-relaxed text-muted-foreground">
-                  {s.tech}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-12">
-            <h2 className="font-heading text-2xl font-bold">What it runs on</h2>
-            <ul className="mt-4 grid grid-cols-1 gap-2 text-[15px] text-muted-foreground sm:grid-cols-2">
-              <li>
-                <span className="font-medium text-foreground">Exa</span> — neural
-                search, findSimilar, content text, Exa Agent deep research, and
-                cited market sources
-              </li>
-              <li>
-                <span className="font-medium text-foreground">Gemini 3.5 Flash</span>{" "}
-                — routing, relevance, clustering, quant, market extraction, and the
-                deal thesis (seed 7, JSON)
-              </li>
-              <li>
-                <span className="font-medium text-foreground">Next.js on Vercel</span>{" "}
-                — App Router, NDJSON streaming route
-              </li>
-              <li>
-                <span className="font-medium text-foreground">Firestore</span> —
-                saved decks for shareable links
-              </li>
-            </ul>
-            <p className="mt-6 text-[14px] text-muted-foreground">
-              Quantitative figures (funding, founded year, headcount, HQ) are
-              estimated from public web sources and left blank when not evident,
-              never invented; the market stat is attributed to its source. Exa
-              Vantage wins on discovery of the unknown, freshness from
-              unstructured sources, and what a company actually does.
+        {/* Hero */}
+        <div className="mx-auto max-w-4xl px-5 pt-16 pb-4 md:px-6">
+          <Reveal>
+            <p className="section-label" style={{ color: AUB }}>Behind the scenes · built for KKR</p>
+            <h1 className="mt-4 max-w-2xl font-heading text-5xl font-bold leading-[1.0] tracking-tight sm:text-7xl">
+              How Exa finds the companies no database has.
+            </h1>
+            <p className="mt-6 max-w-xl text-xl leading-relaxed text-foreground/85">
+              You enter one company. About 90 seconds later you have a deck of the smaller companies
+              worth acquiring around it, ranked and reasoned. Here is the whole journey, in five steps.
             </p>
-          </div>
+          </Reveal>
+
+          <Reveal className="mt-12" delay={120}>
+            <div className="rounded-xl border border-border bg-card p-4 sm:p-8">
+              <MiniPipeline />
+            </div>
+          </Reveal>
+        </div>
+
+        {/* The five acts */}
+        <div className="mx-auto max-w-4xl px-5 py-6 md:px-6">
+          <Act num="01" title="The job: buy small, build big." tag="Private equity buy-and-build (a 'roll-up')" art={<RollupArt />}>
+            KKR picks one solid company in an industry full of small players (the <strong>platform</strong>),
+            then buys up smaller, similar companies (the <strong>add-ons</strong>) and merges them into one
+            market leader worth far more than the parts.
+          </Act>
+
+          <Act num="02" title="The catch: the best targets hide from databases." tag="PitchBook and Crunchbase track funded companies, not the long tail" art={<HiddenArt />} flip>
+            Those smaller companies are private, often family-owned, with barely a website. No database
+            lists them, because databases mostly track companies that raised money or made news. So
+            analysts spend weeks searching by hand.
+          </Act>
+
+          <Act num="03" title="Exa finds them by what they do." tag="Exa findSimilar + neural search over the live web" art={<ExaArt />} emphasize>
+            Give Exa one company and it surfaces the whole hidden field by meaning, the off-database names
+            included. For engineers: it is <strong>findSimilar for acquisition targets</strong>, semantic
+            similarity over the live web instead of a curated list.
+          </Act>
+
+          <Act num="04" title="Keep the real matches, pull the facts." tag="Gemini relevance gate drops name-collisions · per-company facts + a cited market stat from Exa" art={<FilterArt />} flip>
+            An AI gate removes look-alikes that only share a name, then pulls each company&apos;s size,
+            location, and ownership signals, plus one market-size number cited to a real source.
+          </Act>
+
+          <Act num="05" title="It writes the recommendation, as a deck." tag="Gemini 3.5 Flash · structured deal thesis · 9-slide KKR deck · shareable + PDF" art={<DeckArt />}>
+            One analysis turns the set into a partner-ready recommendation: which targets to call first and
+            why, the value, the risks, and the ask, rendered as a 9-slide deck in KKR&apos;s brand in about
+            90 seconds.
+          </Act>
+        </div>
+
+        {/* The stack */}
+        <div className="mx-auto max-w-4xl px-5 py-10 pb-16 md:px-6">
+          <Reveal>
+            <p className="section-label" style={{ color: AUB }}>What it runs on</p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <StackCard icon={<Globe className="size-5" strokeWidth={1.8} />} name="Exa" spec="exa-js · findSimilar + neural search + Contents + Exa Agent · cited market sources" />
+              <StackCard icon={<Sparkles className="size-5" strokeWidth={1.8} />} name="Google Gemini" spec="@google/genai · gemini-3.5-flash · seed 7 · structured JSON output" />
+              <StackCard icon={<Triangle className="size-5" strokeWidth={1.8} />} name="Vercel" spec="Functions on Fluid Compute · NDJSON streaming route · rate limit + budget guard" />
+              <StackCard icon={<Code2 className="size-5" strokeWidth={1.8} />} name="Next.js · React" spec="16 App Router · React 19 · server-rendered shareable /r/[id]" />
+              <StackCard icon={<Database className="size-5" strokeWidth={1.8} />} name="Google Firestore" spec="firebase-admin · saved decks for shareable links" />
+              <StackCard icon={<LineChart className="size-5" strokeWidth={1.8} />} name="PostHog" spec="posthog-js · product analytics" />
+            </div>
+
+            <div className="mt-10 border-t border-border pt-6">
+              <p className="section-label" style={{ color: AUB }}>Notes for engineers</p>
+              <ul className="mt-4 space-y-2.5 font-mono text-xs leading-relaxed text-muted-foreground">
+                <li>· findSimilar over the live web finds the off-database long tail a curated database can&apos;t.</li>
+                <li>· The market stat is sector-scoped and Exa-cited (a single company&apos;s ARR is rejected) with a confidence label.</li>
+                <li>· Quant is evidence-only and labeled estimated, blank when unknown. No invented revenue, multiples, or market shares.</li>
+                <li>· The deck streams behind a gated build view and reveals on done, so you never see half-built numbers.</li>
+              </ul>
+            </div>
+
+            <p className="section-label mt-10 border-t border-border pt-6 text-muted-foreground">
+              Architecture overview · informational. Back to{" "}
+              <Link href="/" className="underline">Exa Vantage</Link>.
+            </p>
+          </Reveal>
         </div>
       </main>
       <SiteFooter />

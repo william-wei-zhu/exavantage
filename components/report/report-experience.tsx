@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Loader2, Search } from "lucide-react";
+import { ArrowRight, Check, ListChecks, Loader2, Search, Telescope, TrendingUp } from "lucide-react";
 import { ReportDeck } from "./report-deck";
 import { BuildingDeck } from "./building-deck";
 import { Button } from "@/components/ui/button";
@@ -17,10 +17,10 @@ import { track } from "@/lib/analytics";
 const firm = firmById(DEFAULT_FIRM_ID);
 const lens = lensFor(firm.lens);
 
-const PAIN_POINTS = [
-  "Off-database, founder-owned targets the shared feeds never indexed",
-  "Fresh readiness signals: new locations, hires, raises, so you know who to call first",
-  "A fragmentation map and add-on shortlist to take to the investment committee",
+const BENEFITS = [
+  { icon: Telescope, text: "Finds the small, founder-owned companies no database lists." },
+  { icon: TrendingUp, text: "Spots who's growing right now, so you know who to call first." },
+  { icon: ListChecks, text: "Hands back a ranked shortlist, ready for the deal meeting." },
 ];
 
 export function ReportExperience() {
@@ -28,8 +28,6 @@ export function ReportExperience() {
   const { state, run, reset } = useReportStream();
   const fade = useFadeUpProps();
 
-  // When the report saves, reflect its shareable URL in the address bar so a
-  // refresh loads the persisted /r/[id] page and the link is copy-pasteable.
   useEffect(() => {
     if (state.reportId && typeof window !== "undefined") {
       window.history.replaceState(null, "", `/r/${state.reportId}`);
@@ -89,7 +87,11 @@ export function ReportExperience() {
               )}
             </Button>
           </div>
-          {showInputs && <p className="px-1 text-[13px] text-muted-foreground">{lens.inputHint}</p>}
+          {showInputs && (
+            <p className="px-1 text-[13px] text-muted-foreground">
+              Enter one company. We find the smaller ones worth acquiring around it.
+            </p>
+          )}
         </form>
 
         {showInputs && (
@@ -112,24 +114,28 @@ export function ReportExperience() {
               ))}
             </div>
 
-            <div className="rounded-xl px-5 py-4" style={{ background: `${firm.theme.primary}08` }}>
+            <div className="flex flex-col gap-3">
               <p className="text-[15px] font-semibold" style={{ color: firm.theme.primary }}>
-                PitchBook tells you who already got found. Exa finds the rest.
+                PitchBook shows who's already been found. Exa finds the rest.
               </p>
-              <ul className="mt-3 space-y-2">
-                {PAIN_POINTS.map((p) => (
-                  <li key={p} className="flex items-start gap-2.5 text-[13.5px] text-foreground/80">
-                    <Check className="mt-[3px] h-4 w-4 shrink-0" style={{ color: firm.theme.accent }} strokeWidth={3} />
-                    {p}
-                  </li>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {BENEFITS.map((b) => (
+                  <div key={b.text} className="rounded-xl border border-border bg-card p-4">
+                    <span
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full"
+                      style={{ background: `${firm.theme.accent}1a` }}
+                    >
+                      <b.icon className="h-[18px] w-[18px]" style={{ color: firm.theme.accent }} strokeWidth={2} />
+                    </span>
+                    <p className="mt-2.5 text-[13.5px] leading-snug text-foreground/80">{b.text}</p>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           </>
         )}
       </motion.div>
 
-      {/* Gated build state: show progress, not the half-built deck */}
       {busy && (
         <BuildingDeck
           phase={state.phase}
@@ -139,7 +145,6 @@ export function ReportExperience() {
         />
       )}
 
-      {/* Error */}
       {state.status === "error" && (
         <div className="no-print rounded-xl border border-destructive/30 bg-destructive/5 px-5 py-4 text-sm text-destructive">
           {state.error}
@@ -149,7 +154,6 @@ export function ReportExperience() {
         </div>
       )}
 
-      {/* The finished deck, revealed on completion */}
       {state.status === "done" && state.mode && (
         <motion.div {...fade} className="flex flex-col gap-4">
           <div className="no-print flex items-center gap-2 text-sm font-semibold" style={{ color: firm.theme.green }}>

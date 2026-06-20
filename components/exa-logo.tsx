@@ -62,9 +62,9 @@ export function ExaMark({ className }: { className?: string }) {
 /** The header lockup: the Exa wordmark + a "Vantage" sub-brand label. */
 export function ExaVantageLockup({ className }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className ?? ""}`}>
-      <ExaLogo className="h-[22px] w-auto text-foreground" />
-      <span className="font-heading text-xl font-semibold leading-none tracking-tight text-foreground">
+    <span className={`inline-flex items-center gap-2.5 ${className ?? ""}`}>
+      <ExaLogo className="h-[26px] w-auto text-foreground" />
+      <span className="font-heading text-2xl font-semibold leading-none tracking-tight text-foreground">
         Vantage
       </span>
     </span>
