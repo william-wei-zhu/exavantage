@@ -1,7 +1,7 @@
 import type { Firm } from "@/lib/firms";
 import type { LensCopy } from "@/lib/lenses";
 import { FirmLogo } from "@/components/report/firm-logo";
-import { PRINT_EXACT, type PageInfo } from "./bits";
+import { PRINT_EXACT, SLIDE_FRAME_CLASS, type PageInfo } from "./bits";
 
 /**
  * The shared slide "page", styled after KKR's own deck: aubergine humanist title
@@ -35,10 +35,10 @@ export function SlideFrame({
   const t = firm.theme;
   return (
     <div
-      className="flex min-h-[600px] flex-col overflow-hidden rounded-2xl ring-1 ring-black/10"
+      className={SLIDE_FRAME_CLASS}
       style={{ background: t.paper, color: t.ink, fontFamily: t.bodyFont, ...PRINT_EXACT }}
     >
-      <div className="flex flex-1 flex-col px-7 py-7 sm:px-10 sm:py-8">
+      <div className="flex min-h-0 flex-1 flex-col px-7 py-6 sm:px-10 sm:py-7">
         <div className="flex items-start justify-between gap-5">
           <div className="min-w-0">
             {kicker && (
@@ -56,7 +56,7 @@ export function SlideFrame({
         {intro && (
           <p className="mt-3 max-w-2xl text-[13.5px] leading-snug" style={{ color: `${t.ink}99` }}>{intro}</p>
         )}
-        <div className="mt-5 flex-1">{children}</div>
+        <div className="mt-4 min-h-0 flex-1 overflow-hidden">{children}</div>
       </div>
 
       <SlideFooter firm={firm} lens={lens} page={page} note={note} />

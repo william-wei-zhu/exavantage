@@ -118,9 +118,9 @@ export default function AboutPage() {
             location, and ownership signals, plus one market-size number cited to a real source.
           </Act>
 
-          <Act num="05" title="It writes the recommendation, as a deck." tag="Gemini 3.5 Flash · structured deal thesis · 9-slide KKR deck · shareable + PDF" art={<DeckArt />}>
+          <Act num="05" title="It writes the recommendation, as a deck." tag="Gemini 3.5 Flash · structured deal thesis · KKR deck · shareable + PDF" art={<DeckArt />}>
             One analysis turns the set into a partner-ready recommendation: which targets to call first and
-            why, the value, the risks, and the ask, rendered as a 9-slide deck in KKR&apos;s brand in about
+            why, the value, the risks, and the ask, rendered as a fixed-frame slide deck in KKR&apos;s brand in about
             90 seconds.
           </Act>
         </div>

@@ -1,13 +1,15 @@
 import type { PageInfo, SlideProps } from "./bits";
 import { Favicon, HeaderBand, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
+import { truncateWords } from "@/lib/util";
 
-/** The Exa edge: off-market sourcing (lower multiples) + readiness signals (timing). */
+/** The Exa Vantage: proprietary, off-database sourcing. The names PitchBook and
+ *  Sourcescrub never indexed mean fewer bidders, off-auction conversations, and
+ *  lower entry multiples. */
 export function SignalsSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
   const thesis = report.thesis;
-  const offDatabase = report.companies.filter((c) => c.emerging).slice(0, 5);
-  const withSignals = report.companies.filter((c) => c.recentSignal).slice(0, 5);
+  const offDatabase = report.companies.filter((c) => c.emerging).slice(0, 4);
 
   return (
     <SlideFrame
@@ -17,51 +19,29 @@ export function SignalsSlide({ report, firm, lens, page }: SlideProps & { page?:
       title={thesis?.takeaways.edge ?? lens.signalsTitle}
       intro={thesis?.edge}
       page={page}
-      note="Off-database is inferred from low public-database coverage; signals are the freshest public results Exa surfaced."
+      note="Off-database is inferred from low public-database coverage; these are the proprietary names Exa surfaced."
     >
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div>
-          <HeaderBand title="Off-database finds" t={t} right="price: off-auction" />
-          <div className="mt-3 space-y-2">
-            {offDatabase.length ? (
-              offDatabase.map((c) => (
-                <div key={c.domain} className="flex gap-2.5 rounded-md px-3 py-2" style={{ background: `${t.accent}12`, ...PRINT_EXACT }}>
-                  <Favicon domain={c.domain} size={18} className="mt-0.5" />
-                  <div className="min-w-0">
-                    <span className="text-[13px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
-                    <p className="text-[11.5px] leading-snug" style={{ color: `${t.ink}a8` }}>{c.oneLiner}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-[12.5px]" style={{ color: `${t.ink}80` }}>Set skews to catalogued names this run.</p>
-            )}
-          </div>
-        </div>
-        <div>
-          <HeaderBand title="Readiness signals" t={t} right="timing: who to call first" />
-          <div className="mt-3 space-y-2">
-            {withSignals.length ? (
-              withSignals.map((c) => (
-                <div key={c.domain} className="flex gap-2.5 rounded-md p-2.5" style={{ background: t.surface, ...PRINT_EXACT }}>
-                  <Favicon domain={c.domain} size={18} className="mt-0.5" />
-                  <div className="min-w-0">
-                    <span className="text-[13px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
-                    <p className="text-[11.5px] leading-snug" style={{ color: `${t.ink}b0` }}>
-                      {c.recentSignalUrl ? (
-                        <a href={c.recentSignalUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">{c.recentSignal}</a>
-                      ) : (
-                        c.recentSignal
-                      )}
-                    </p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-[12.5px]" style={{ color: `${t.ink}80` }}>No fresh signals in the trailing window.</p>
-            )}
-          </div>
-        </div>
+      <HeaderBand title="Off-database finds" t={t} right="proprietary sourcing · off-auction" />
+      <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2">
+        {offDatabase.length ? (
+          offDatabase.map((c) => (
+            <div key={c.domain} className="flex gap-3 rounded-lg px-3.5 py-2.5" style={{ background: `${t.accent}12`, ...PRINT_EXACT }}>
+              <Favicon domain={c.domain} size={22} className="mt-0.5" />
+              <div className="min-w-0">
+                <span className="text-[14px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
+                <p className="line-clamp-2 text-[12.5px] leading-snug" style={{ color: `${t.ink}a8` }}>{truncateWords(c.oneLiner, 14)}</p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-[13px]" style={{ color: `${t.ink}80` }}>The set skews to catalogued names this run.</p>
+        )}
+      </div>
+
+      <div className="mt-4 rounded-md px-4 py-3 text-white" style={{ background: t.primary, ...PRINT_EXACT }}>
+        <p className="text-[14px] font-semibold leading-snug">
+          Names the databases never indexed mean fewer bidders, off-auction conversations, and lower entry multiples.
+        </p>
       </div>
     </SlideFrame>
   );

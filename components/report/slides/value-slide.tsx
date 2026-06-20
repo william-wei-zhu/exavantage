@@ -1,6 +1,7 @@
 import type { PageInfo, SlideProps } from "./bits";
-import { PRINT_EXACT } from "./bits";
+import { PRINT_EXACT, Ribbon } from "./bits";
 import { SlideFrame } from "./slide-frame";
+import { truncateWords } from "@/lib/util";
 
 /** Value creation: how the roll-up actually makes money, specific to this platform. */
 export function ValueSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
@@ -18,17 +19,26 @@ export function ValueSlide({ report, firm, lens, page }: SlideProps & { page?: P
       page={page}
       note="Value-creation logic is qualitative; no specific multiples, revenue, or synergy figures are claimed."
     >
-      <div className="grid gap-4 sm:grid-cols-2">
-        {levers.length ? (
-          levers.map((l, i) => (
-            <div key={i} className="rounded-lg p-4" style={{ background: t.surface, ...PRINT_EXACT }}>
-              <div className="flex h-7 w-7 items-center justify-center rounded-full text-[13px] font-bold text-white" style={{ background: colors[i % colors.length], ...PRINT_EXACT }}>{i + 1}</div>
-              <p className="mt-2.5 text-[13.5px] leading-snug" style={{ color: `${t.ink}d0` }}>{l}</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-[13px]" style={{ color: `${t.ink}80` }}>Analysis pending.</p>
-        )}
+      <div className="relative h-full">
+        <Ribbon color={t.primary} opacity={0.08} className="pointer-events-none absolute -right-10 -top-8 h-[220px] w-[220px]" />
+        <div className="relative grid content-start gap-4 sm:grid-cols-2">
+          {levers.length ? (
+            levers.slice(0, 4).map((l, i) => {
+              const c = colors[i % colors.length];
+              return (
+                <div key={i} className="overflow-hidden rounded-xl" style={{ background: t.surface, ...PRINT_EXACT }}>
+                  <div className="h-1.5 w-full" style={{ background: c, ...PRINT_EXACT }} />
+                  <div className="p-4">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full text-[15px] font-bold text-white" style={{ background: c, ...PRINT_EXACT }}>{i + 1}</div>
+                    <p className="mt-3 line-clamp-3 text-[15px] leading-snug" style={{ color: `${t.ink}d0` }}>{truncateWords(l, 24)}</p>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-[14px]" style={{ color: `${t.ink}80` }}>Analysis pending.</p>
+          )}
+        </div>
       </div>
     </SlideFrame>
   );

@@ -133,6 +133,12 @@
 /* Print / PDF: drop the Exa chrome so the exported report is the firm's
  * leave-behind only. The report root opts in with the `print-report` class. */
 @media print {
+  /* Each printed page IS one slide canvas: a fixed 16:9 landscape box, no margins,
+   * so every page comes out identical width/height like a real slide deck. */
+  @page {
+    size: 1040px 585px landscape;
+    margin: 0;
+  }
   header,
   footer,
   nav,
@@ -143,18 +149,36 @@
     background: white !important;
   }
   main {
-    padding-top: 0 !important;
+    padding: 0 !important;
   }
-  /* Reveal every slide, one per printed page. */
+  /* Neutralize the report container + deck padding so each slide fills the page. */
+  main > div {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .deck {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  /* Reveal every slide, one per printed page, each an identical fixed canvas. */
   .deck-slide-hidden {
     display: block !important;
   }
   .deck-slides > div {
+    width: 1040px;
+    height: 585px;
+    overflow: hidden;
     break-before: page;
     break-inside: avoid;
   }
   .deck-slides > div:first-child {
     break-before: auto;
+  }
+  /* The slide root fills its page box; square the corners for a clean full-bleed page. */
+  .deck-slides > div > div {
+    height: 100% !important;
+    border-radius: 0 !important;
   }
 }
 

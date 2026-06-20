@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Download, Link2, Check } from "lucide-react";
 import { Deck, type Slide } from "@/components/deck/Deck";
+import type { PageInfo } from "./slides/bits";
 import { Button } from "@/components/ui/button";
 import { CoverSlide } from "./slides/cover";
 import { WhyNowSlide } from "./slides/why-now-slide";
 import { HighlightSlide } from "./slides/highlight-slide";
 import { MapSlide } from "./slides/map-slide";
 import { AnchorSlide } from "./slides/anchor-slide";
-import { QuantSlide } from "./slides/quant-slide";
+import { QuantSlide, AppendixSlide, appendixChunks } from "./slides/quant-slide";
 import { ValueSlide } from "./slides/value-slide";
 import { SignalsSlide } from "./slides/signals-slide";
 import { SynthesisSlide } from "./slides/synthesis-slide";
@@ -34,23 +35,41 @@ export function ReportDeck({
 }) {
   const lens = lensFor(firm.lens);
   const props = { report, firm, lens };
-  const total = 9;
-  const pg = (n: number) => ({ n, total });
+
+  // The full add-on universe is paginated into appendix table slides so every page
+  // stays a uniform fixed-size slide; they sit right after the Tier-1 targets slide.
+  const chunks = appendixChunks(report.companies);
 
   // Order follows the questions a partner asks: recommendation -> why now -> is it
-  // consolidatable -> where to win -> the anchor -> who to buy -> how value is made
-  // -> why it's proprietary -> the play.
-  const slides: Slide[] = [
-    { id: "cover", title: lens.product, node: <CoverSlide {...props} page={pg(1)} /> },
-    { id: "why-now", title: lens.whyNowTitle, node: <WhyNowSlide {...props} page={pg(2)} /> },
-    { id: "thesis", title: lens.highlightTitle, node: <HighlightSlide {...props} page={pg(3)} /> },
-    { id: "where", title: lens.mapTitle, node: <MapSlide {...props} page={pg(4)} /> },
-    { id: "anchor", title: lens.anchorTitle, node: <AnchorSlide {...props} page={pg(5)} /> },
-    { id: "targets", title: lens.quantTitle, node: <QuantSlide {...props} page={pg(6)} /> },
-    { id: "value", title: lens.valueTitle, node: <ValueSlide {...props} page={pg(7)} /> },
-    { id: "edge", title: lens.signalsTitle, node: <SignalsSlide {...props} page={pg(8)} /> },
-    { id: "play", title: lens.synthesisTitle, node: <SynthesisSlide {...props} page={pg(9)} /> },
+  // consolidatable -> where to win -> the anchor -> who to buy now -> the full screen
+  // -> how value is made -> why it's proprietary -> the play. Page numbers are derived
+  // from the final slide count (so splits/appendix pages number correctly).
+  type SlideSpec = { id: string; title: string; render: (page: PageInfo) => ReactNode };
+  const specs: SlideSpec[] = [
+    { id: "cover", title: lens.product, render: (page) => <CoverSlide {...props} page={page} /> },
+    { id: "why-now", title: lens.whyNowTitle, render: (page) => <WhyNowSlide {...props} page={page} /> },
+    { id: "thesis", title: lens.highlightTitle, render: (page) => <HighlightSlide {...props} page={page} /> },
+    { id: "where", title: lens.mapTitle, render: (page) => <MapSlide {...props} page={page} /> },
+    { id: "anchor", title: lens.anchorTitle, render: (page) => <AnchorSlide {...props} page={page} /> },
+    { id: "targets", title: lens.quantTitle, render: (page) => <QuantSlide {...props} page={page} /> },
+    ...chunks.map((companies, ci) => ({
+      id: `appendix-${ci}`,
+      title: "The Full Screen",
+      render: (page: PageInfo) => (
+        <AppendixSlide {...props} page={page} companies={companies} part={ci + 1} parts={chunks.length} />
+      ),
+    })),
+    { id: "value", title: lens.valueTitle, render: (page) => <ValueSlide {...props} page={page} /> },
+    { id: "edge", title: lens.signalsTitle, render: (page) => <SignalsSlide {...props} page={page} /> },
+    { id: "play", title: lens.synthesisTitle, render: (page) => <SynthesisSlide {...props} page={page} /> },
   ];
+
+  const total = specs.length;
+  const slides: Slide[] = specs.map((s, i) => ({
+    id: s.id,
+    title: s.title,
+    node: s.render({ n: i + 1, total }),
+  }));
 
   return (
     <Deck

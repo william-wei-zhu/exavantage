@@ -1,17 +1,23 @@
 import type { PageInfo, SlideProps } from "./bits";
-import { BarChart, PRINT_EXACT, StatBox } from "./bits";
+import { BarChart, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { exaEdge, lensIndex, stageBucket, stageMix } from "@/lib/metrics";
+import { lensIndex, stageBucket, stageMix } from "@/lib/metrics";
+import { truncateWords } from "@/lib/util";
 
-/** The fragmentation thesis: evidence that this market is consolidatable. */
+/** The fragmentation thesis: the argument (not duplicate stats) that this market
+ *  is consolidatable. Lead with the claim, then prove it with the Fragmentation
+ *  Index, the size/stage mix, and the two reads that matter: how sub-scale and how
+ *  founder-owned the field is. All derived from the existing Report. */
 export function HighlightSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
   const cos = report.companies;
   const thesis = report.thesis;
   const idx = lensIndex(firm.lens, report);
+  const total = Math.max(1, cos.length);
   const subScale = cos.filter((c) => ["Seed", "Early", "Growth", "Other"].includes(stageBucket(c.stage))).length;
   const founderOwned = cos.filter((c) => !c.funding).length;
-  const offDb = exaEdge(report).count;
+  const pctSubScale = Math.round((100 * subScale) / total);
+  const pctFounder = Math.round((100 * founderOwned) / total);
   const stages = stageMix(cos);
 
   return (
@@ -21,31 +27,58 @@ export function HighlightSlide({ report, firm, lens, page }: SlideProps & { page
       kicker={lens.highlightTitle}
       title={thesis?.takeaways.thesis ?? lens.highlightTitle}
       page={page}
-      note="Fragmentation is derived from the discovered set, not a market-share figure."
+      note="Fragmentation is derived from the discovered set, not a market-share figure. The index is an illustrative composite."
     >
-      <p className="max-w-3xl text-[16px] leading-snug" style={{ color: `${t.ink}c8` }}>
-        {thesis?.fragmentation ?? `No single name dominates these ${cos.length} companies and no scaled consolidator exists; the field is sub-scale and built to roll up.`}
+      <p className="line-clamp-3 max-w-4xl text-[18px] font-semibold leading-snug" style={{ color: t.primary }}>
+        {truncateWords(
+          thesis?.fragmentation ??
+            `No single name dominates these ${cos.length} companies and no scaled consolidator exists; the field is sub-scale and built to roll up.`,
+          30,
+        )}
       </p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-4">
-        <StatBox value={String(report.segments.length)} label="Sub-segments" color={t.secondary} />
-        <StatBox value={String(subScale)} label="Sub-scale targets" color={t.accent} />
-        <StatBox value={String(founderOwned)} label="Likely founder-owned" color={t.primary} />
-        <StatBox value={String(offDb)} label="Off-database finds" color={t.lavender} />
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-        <div className="inline-flex h-fit items-center gap-2 self-start rounded-full px-3 py-1 text-[11px] font-semibold" style={{ background: `${t.primary}12`, color: t.primary, ...PRINT_EXACT }}>
-          Fragmentation Index {idx.score}/100
-          <span style={{ color: `${t.ink}80` }}>· illustrative composite</span>
-        </div>
-        {stages.length >= 2 && (
+      <div className="mt-5 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+        <div className="flex flex-col gap-4">
           <div>
-            <div className="mb-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: `${t.ink}80` }}>Size / stage mix</div>
-            <BarChart data={stages} accent={t.primary} />
+            <div className="flex items-baseline justify-between">
+              <span className="text-[12px] font-bold uppercase tracking-wider" style={{ color: `${t.ink}80` }}>Fragmentation Index</span>
+              <span className="text-[22px] font-bold tabular-nums" style={{ color: t.primary }}>
+                {idx.score}
+                <span className="text-[13px] font-semibold" style={{ color: `${t.ink}60` }}>/100</span>
+              </span>
+            </div>
+            <div className="mt-2 h-3 w-full overflow-hidden rounded-full" style={{ background: `${t.primary}14`, ...PRINT_EXACT }}>
+              <div className="h-3 rounded-full" style={{ width: `${idx.score}%`, background: t.primary, ...PRINT_EXACT }} />
+            </div>
+            <div className="mt-1 flex justify-between text-[10.5px] font-medium" style={{ color: `${t.ink}66` }}>
+              <span>Consolidated</span>
+              <span>Fragmented = more runway</span>
+            </div>
           </div>
-        )}
+          <div className="grid grid-cols-2 gap-3">
+            <ProofStat value={`${pctSubScale}%`} label="Sub-scale targets" color={t.accent} t={t} />
+            <ProofStat value={`${pctFounder}%`} label="Likely founder-owned" color={t.secondary} t={t} />
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-2.5 text-[12px] font-bold uppercase tracking-wider" style={{ color: `${t.ink}80` }}>Size / stage mix</div>
+          {stages.length >= 2 ? (
+            <BarChart data={stages} accent={t.primary} />
+          ) : (
+            <p className="text-[13.5px]" style={{ color: `${t.ink}80` }}>Stage data is sparse for this set.</p>
+          )}
+        </div>
       </div>
     </SlideFrame>
+  );
+}
+
+function ProofStat({ value, label, color, t }: { value: string; label: string; color: string; t: SlideProps["firm"]["theme"] }) {
+  return (
+    <div className="rounded-lg p-3.5" style={{ background: `${color}10`, ...PRINT_EXACT }}>
+      <div className="text-[28px] font-bold leading-none tabular-nums" style={{ color }}>{value}</div>
+      <div className="mt-1.5 text-[12.5px] font-semibold leading-tight" style={{ color: `${t.ink}b0` }}>{label}</div>
+    </div>
   );
 }

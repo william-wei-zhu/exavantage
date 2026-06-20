@@ -1,7 +1,7 @@
 # Exa Vantage
 
 A partner-grade PE deal-origination deck, generated from one input. Enter a **platform
-company**; Exa Vantage returns a **9-slide KKR-branded slide deck** that recommends a buy-and-build
+company**; Exa Vantage returns a **fixed-frame KKR-branded slide deck** that recommends a buy-and-build
 (roll-up): the add-on universe, tiered targets, value-creation, risks, and a concrete ask. Shareable
 by link, exportable to PDF. Live at **exavantage.com**. Powered by Exa + Gemini.
 
@@ -28,7 +28,7 @@ route (Gemini) → discover (findSimilar + semantic search) → relevance gate (
   name-collisions) → emerging pass (Exa Agent, flagged) → cluster + tear sheets (Gemini) →
   per-company intel (Exa text+highlights) → quant extraction (batched Gemini, evidence-only) →
   market context (Exa, cited, SECTOR not company) + deal thesis (Gemini) → stream NDJSON →
-  save to Firestore → 9-slide deck → PDF
+  save to Firestore → fixed-frame KKR deck (16:9) → PDF
 ```
 
 Key files:
@@ -55,16 +55,25 @@ One Gemini pass turns the discovered set into a partner-grade recommendation, pe
 `sequencing`, `ask`, and per-slide `takeaways` (the action-title headlines). `MarketContext` carries
 the cited `stat` + `sourceUrl` + `confidence` ("research firm" | "secondary").
 
-## The 9 slides (`components/report/slides/*`, `report-deck.tsx`)
+## The slides (`components/report/slides/*`, `report-deck.tsx`)
 
 Insight-first, each leading with an **action-title headline** (the takeaway) and a small category
-kicker via `slide-frame.tsx`. Order: 1 Recommendation (`cover`) · 2 Why Now (`why-now-slide`) ·
-3 Fragmentation Thesis (`highlight-slide`) · 4 Where to Win (`map-slide`) · 5 The Anchor
-(`anchor-slide`) · 6 Priority Targets (`quant-slide`, tiered + evidence lines) · 7 Value Creation
-(`value-slide`) · 8 The Exa Edge (`signals-slide`) · 9 The Play (`synthesis-slide`, first calls +
-risks + ask). Primitives in `bits.tsx` (`StatBox`, `HeaderBand`, `Checklist`, `CompsTable`,
-`Ribbon`, `ConvictionBadge`, `TierBadge`, `SourceChip`, `ConfidenceChip`, `evidenceLine`). `Deck`
-is a carousel (prev/next, dots, keyboard; print = one slide per page).
+kicker via `slide-frame.tsx`. Order: 1 Recommendation (`cover`, anchor logo) · 2 Why Now
+(`why-now-slide`) · 3 The Fragmentation Thesis (`highlight-slide`, argument + index gauge + stage-mix
+chart, no duplicate stats) · 4 Where to Win (`map-slide`) · 5 The Anchor (`anchor-slide`, logo hero) ·
+6 Priority Targets (`quant-slide`, Tier-1 "call now" cards) · then **The Full Screen** appendix
+table slide(s) (`AppendixSlide`, the full universe paginated ~11 rows/page) · Value Creation
+(`value-slide`) · **The Exa Vantage** (`signals-slide`, off-database sourcing → lower multiples) ·
+The Play (`synthesis-slide`, first calls with logos + risks + ask). Page count is **dynamic**
+(appendix pages vary) and page numbers derive from the final slide array in `report-deck.tsx`.
+
+Every slide is a **fixed 16:9 canvas** (`SLIDE_FRAME_CLASS` in `bits.tsx`): identical width/height,
+`overflow-hidden` (so content is curated/clamped to fit, not allowed to grow), and a strong aubergine
+ring. Print uses `@page { size: 1040px 585px landscape; margin: 0 }` (`globals.css`) so each slide is
+one identical full-bleed page. Real company logos use `CompanyLogo` (hi-res Google favicon tile);
+dense lists use `Favicon`. Other primitives in `bits.tsx` (`StatBox`, `HeaderBand`, `Checklist`,
+`CompsTable`, `Ribbon`, `ConvictionBadge`, `TierBadge`, `SourceChip`, `ConfidenceChip`,
+`evidenceLine`). `Deck` is a carousel (prev/next, dots, keyboard; print = one slide per page).
 
 ## Loading + sharing
 

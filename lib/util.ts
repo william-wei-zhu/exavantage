@@ -43,6 +43,15 @@ export function isValidDomain(domain: string): boolean {
   return /[a-z]/.test(tld);
 }
 
+/** Truncate to at most `maxWords` whole words, adding an ellipsis only when text
+ *  was actually cut. Cuts on a word boundary (never mid-word) and trims trailing
+ *  punctuation so slide copy ends cleanly instead of being chopped by the box. */
+export function truncateWords(text: string | undefined, maxWords: number): string {
+  const words = (text ?? "").trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return (text ?? "").trim();
+  return words.slice(0, maxWords).join(" ").replace(/[,;:.\-\s]+$/, "") + "…";
+}
+
 /** Brand favicon via Google's service (no key needed). */
 export function faviconUrl(domain: string, size = 64): string {
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(

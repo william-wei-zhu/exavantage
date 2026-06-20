@@ -46,7 +46,7 @@ export const LENSES: Record<LensId, LensCopy> = {
     id: "buyout",
     desk: "Deal Origination",
     product: "Buy-and-Build Origination",
-    coverLine: (s) => `Add-On Universe: ${s}`,
+    coverLine: (s) => s,
     whyNowTitle: "Why Now",
     mapTitle: "Where to Win",
     mapIntro:
@@ -57,7 +57,7 @@ export const LENSES: Record<LensId, LensCopy> = {
     anchorTitle: "The Anchor",
     quantTitle: "Priority Targets",
     valueTitle: "Value Creation",
-    signalsTitle: "The Exa Edge",
+    signalsTitle: "The Exa Vantage",
     signalsIntro:
       "The proprietary names the databases never indexed, plus the fresh signals that say which target to call first.",
     synthesisTitle: "The Play",

@@ -42,10 +42,11 @@ export function Deck({
   if (n === 0) return null;
   const atEnd = clamped === n - 1;
 
-  return (
-    <div className="deck">
-      {/* Controls */}
-      <div className="no-print mb-4 flex items-center justify-between gap-4">
+  // The prev/next/dots/counter cluster, rendered both above and below the deck so
+  // navigation is reachable without scrolling back to the top.
+  const controls = (
+    <div className="no-print flex flex-col gap-2">
+      <div className="flex items-center justify-between gap-4">
         <button
           onClick={() => go(clamped - 1)}
           disabled={clamped === 0}
@@ -83,10 +84,15 @@ export function Deck({
         </button>
       </div>
 
-      {/* Counter */}
-      <div className="no-print mb-3 text-center text-[12px] font-medium tracking-wide text-muted-foreground">
+      <div className="text-center text-[12px] font-medium tracking-wide text-muted-foreground">
         <span style={{ color: accent }}>{clamped + 1}</span> / {n} · {slides[clamped].title}
       </div>
+    </div>
+  );
+
+  return (
+    <div className="deck">
+      <div className="mb-4">{controls}</div>
 
       {/* Slides — all mounted; CSS controls visibility (and print). */}
       <div className="deck-slides">
@@ -97,7 +103,9 @@ export function Deck({
         ))}
       </div>
 
-      {toolbar && <div className="no-print mt-5">{toolbar}</div>}
+      <div className="mt-5">{controls}</div>
+
+      {toolbar && <div className="no-print mt-4">{toolbar}</div>}
     </div>
   );
 }

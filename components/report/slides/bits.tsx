@@ -16,6 +16,15 @@ export const PRINT_EXACT: React.CSSProperties = {
   printColorAdjust: "exact",
 };
 
+/**
+ * The shared slide canvas: a fixed 16:9 box so every slide is exactly the same
+ * width/height and prints one-per-page (landscape) as a real slide deck. Overflow
+ * is clipped, which forces each slide to be curated to fit. A stronger aubergine
+ * ring frames the slide. Phones fall back to natural height (fonts are fixed-px).
+ */
+export const SLIDE_FRAME_CLASS =
+  "relative flex aspect-[16/9] w-full flex-col overflow-hidden rounded-2xl ring-2 ring-[#53284F]/35 max-sm:aspect-auto max-sm:min-h-[560px]";
+
 export function groupBySegment(report: Report): { segment: Segment; companies: Company[] }[] {
   const byDomain = new Map(report.companies.map((c) => [c.domain, c]));
   return report.segments
@@ -47,6 +56,25 @@ export function Favicon({ domain, size = 20, className = "" }: { domain: string;
       height={size}
       className={`shrink-0 rounded-sm border border-black/5 bg-white ${className}`}
       style={{ width: size, height: size }}
+    />
+  );
+}
+
+/**
+ * A prominent company logo tile (hi-res Google favicon, sz=128) for the hero
+ * spots on the cover, anchor, and first-call slides. Rendered as a clean rounded
+ * white tile so it reads as a logo, not a list bullet. For dense lists use `Favicon`.
+ */
+export function CompanyLogo({ domain, size = 48, className = "" }: { domain: string; size?: number; className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={faviconUrl(domain, 128)}
+      alt=""
+      width={size}
+      height={size}
+      className={`shrink-0 rounded-lg border border-black/10 bg-white object-contain p-1.5 shadow-sm ${className}`}
+      style={{ width: size, height: size, ...PRINT_EXACT }}
     />
   );
 }
@@ -127,7 +155,7 @@ export function StatBox({
   return (
     <div className="flex flex-col">
       <div
-        className="flex min-h-[88px] flex-col justify-center rounded-md px-4 py-3 text-white"
+        className="flex min-h-[80px] flex-col justify-center rounded-md px-4 py-3 text-white"
         style={{ background: color, ...PRINT_EXACT }}
       >
         <div className="text-3xl font-bold leading-none tabular-nums">{value}</div>
@@ -146,16 +174,16 @@ export function StatBox({
 /** A list with KKR-green circle checkmarks. */
 export function Checklist({ items, t }: { items: string[]; t: FirmTheme }) {
   return (
-    <ul className="space-y-2.5">
+    <ul className="space-y-2">
       {items.map((it, i) => (
-        <li key={i} className="flex items-start gap-2.5 text-[13.5px] leading-snug">
+        <li key={i} className="flex items-start gap-2.5 text-[14.5px] leading-snug">
           <span
             className="mt-[1px] inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full"
             style={{ background: t.green, ...PRINT_EXACT }}
           >
             <Check className="h-3 w-3 text-white" strokeWidth={3} />
           </span>
-          <span style={{ color: `${t.ink}d0` }}>{it}</span>
+          <span className="line-clamp-2" style={{ color: `${t.ink}d0` }}>{it}</span>
         </li>
       ))}
     </ul>
