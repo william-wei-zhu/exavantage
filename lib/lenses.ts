@@ -68,7 +68,9 @@ export const LENSES: Record<LensId, LensCopy> = {
       "Give us a platform company; we map its proprietary add-on universe for a buy-and-build.",
     examples: [
       { label: "ServiceTitan", query: "ServiceTitan" },
-      { label: "Toast", query: "Toast" },
+      { label: "Lululemon", query: "Lululemon" },
+      { label: "Sweetgreen", query: "Sweetgreen" },
+      { label: "Warby Parker", query: "Warby Parker" },
       { label: "Procore", query: "Procore" },
     ],
     inputHint: "Enter a platform company (e.g. ServiceTitan) and we map its add-on universe.",
