@@ -335,3 +335,69 @@
     animation: none;
   }
 }
+
+/* ── Home hero tagline ──────────────────────────────────────────────────────
+   "Your vantage on every deal." in Hanken Grotesk (KKR-corporate type). Words
+   rise out of the baseline once, staggered; "deal." is KKR aubergine and an
+   aubergine rule draws in under the sentence only (the headline shrinks to its
+   content width, so the rule stops right after "deal." instead of spanning the
+   page). One-shot motion; static under reduced-motion. */
+.hero-tagline {
+  position: relative;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  align-items: baseline;
+  gap: 0 0.4ch;
+  width: fit-content;
+  max-width: 100%;
+  padding-bottom: 0.26em;
+  line-height: 1;
+  letter-spacing: -0.018em;
+  color: var(--foreground);
+  font-size: clamp(1.3rem, 5.4vw, 3.1rem);
+}
+.hero-w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
+.hero-w > span {
+  display: inline-block;
+  transform: translateY(125%);
+  animation: hero-rise 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: inherit;
+}
+@keyframes hero-rise {
+  to { transform: translateY(0); }
+}
+.hero-accent > span {
+  color: #53284f;
+}
+.hero-rule {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  border-radius: 2px;
+  background: #53284f;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: hero-rule 0.7s 0.95s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes hero-rule {
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-w > span {
+    animation: none;
+    transform: none;
+  }
+  .hero-rule {
+    animation: none;
+    transform: scaleX(1);
+  }
+}

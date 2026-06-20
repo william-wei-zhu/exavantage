@@ -94,7 +94,13 @@ Clean white Exa shell, co-branded for KKR. `components/exa-header.tsx` = enlarge
 (`exa-logo.tsx`) + a "for KKR" co-brand (the `public/logos/kkr.svg`) + a single "How it works" link
 (no Pricing/Docs/About-Exa). Homepage hero (`app/page.tsx`): "Exa Vantage · built for KKR" eyebrow,
 the **"Your vantage on every deal."** tagline, a plain-English subhead; `report-experience.tsx` has a
-3-up icon value band. **`app/about/page.tsx` is a visual "acts" walk-through** (modeled on pbcindex's
+3-up icon value band. The tagline is set in **Hanken Grotesk** (KKR's corporate-type stand-in, the
+`--font-hanken` already loaded in `layout.tsx`), sized to sit on **one row**, with the words rising
+out of the baseline in a one-shot staggered reveal and an **aubergine `#53284F`** rule drawing in
+under the sentence; "deal." is the aubergine accent word. The headline is `display:inline-flex;
+width:fit-content` so the rule **stops right after "deal."** instead of spanning the page. All the
+motion (`.hero-tagline`/`.hero-w`/`.hero-rule` + `hero-rise`/`hero-rule` keyframes in `globals.css`)
+plays once and is static under `prefers-reduced-motion`. **`app/about/page.tsx` is a visual "acts" walk-through** (modeled on pbcindex's
 `/docs`): scroll-revealed (`components/reveal.tsx` + the `.reveal/.draw/.fade-art/.sweep/.press/
 .pipe-line` motion in `globals.css`), hand-drawn animated SVG line-art in aubergine/teal
 (`components/docs-art.tsx`), explaining the PE roll-up job in plain English + precise tech names
