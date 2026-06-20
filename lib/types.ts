@@ -19,6 +19,18 @@ export type Company = {
   similar: string[];
   /** Whether this company reads as emerging / under-the-radar. */
   emerging: boolean;
+
+  // --- quant (estimated from public web; left blank when not evident) ---
+  /** Year founded, e.g. 2019. */
+  foundedYear?: number;
+  /** Total funding raised, as a human string, e.g. "$120M". */
+  funding?: string;
+  /** Last/round stage, e.g. "Seed", "Series C", "Public", "Bootstrapped". */
+  stage?: string;
+  /** Estimated headcount range, e.g. "51-200". */
+  employees?: string;
+  /** HQ region, e.g. "San Francisco, US". */
+  region?: string;
 };
 
 /** A market-map cluster: a sub-segment label and the companies inside it. */
@@ -57,5 +69,5 @@ export type StreamEvent =
   | { type: "company"; company: Company }
   | { type: "emerging"; companies: Company[] }
   | { type: "summary"; executiveSummary: string }
-  | { type: "done"; generatedAt: string }
+  | { type: "done"; generatedAt: string; reportId?: string }
   | { type: "error"; message: string };

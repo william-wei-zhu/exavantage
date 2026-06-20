@@ -1,79 +1,92 @@
 # Exa Vantage
 
-AI market-intelligence reports for financial-services analysts. Pick a firm, type
-a company name or a sector thesis, get a branded research report (market map +
-company tear sheets + emerging/under-the-radar + executive summary), exportable
-to PDF. Live at **exavantage.com**. Powered by Exa + Gemini.
+AI market-intelligence for financial-services teams, as a firm-branded **slide
+deck**. Pick one of three desks, type a company or an industry/thesis, and get a
+tailored deck (cover → market map → lens-specific highlight → quant → signals →
+synthesis), shareable by link and exportable to PDF. Live at **exavantage.com**.
+Powered by Exa + Gemini.
 
-UI/UX and build conventions follow William's Web App Building Standard:
-https://github.com/william-wei-zhu/web-app-building-standard — with one explicit,
-sanctioned deviation: **the frontend deliberately clones the Exa brand** (real Exa
-logo, header, footer, fonts, colors from williamzhu.ai/exa-growth) so it reads as
-"made by Exa." Brand fidelity to Exa overrides the standard's own visual
-conventions (logo rules, non-sticky header, attribution placement). See the
+UI/UX follows William's Web App Building Standard
+(https://github.com/william-wei-zhu/web-app-building-standard) with one sanctioned
+deviation: **the frontend clones the Exa brand** (real Exa logo/header, fonts,
+palette from williamzhu.ai/exa-growth) so it reads as "made by Exa". See the
 standard's "Cloning a target brand" clause.
 
-## Architecture
+## Three desks, one engine, three lenses
 
-Monolithic Next.js 16 (App Router) on Vercel. "Backend" = Vercel serverless
-route handlers; Google Cloud's role is the Gemini model. Stateless — every report
-is generated fresh (no DB); per-IP rate limiting + a daily budget kill switch
-protect API spend.
+One shared discovery engine; the selected firm sets a **lens** that reframes every
+slide and the quant.
 
-### The pipeline (`lib/pipeline.ts`)
+| Desk | Firm | Lens (`lib/firms.ts` `lens`) | Tailored to |
+|---|---|---|---|
+| Investment Bank | Goldman Sachs (navy, Source Serif) | `ipo` | IPO candidates & comparables (ECM) |
+| Private Equity | Blackstone (black, Playfair) | `buyout` | Acquisition targets & buy-and-build |
+| Venture Capital | a16z (burgundy, Space Grotesk) | `landscape` | Competitive landscape & emerging |
 
-One unified flow, two entry points (the only fork is the seed):
+Lens framing (titles, cover, highlight, examples, Exa-edge copy) lives in
+`lib/lenses.ts`. Firm brand tokens (palette, fonts, logo) in `lib/firms.ts`. Goldman
+uses its real SVG logo (`public/logos/goldman-sachs.svg`); Blackstone + a16z render
+as faithful brand wordmarks (`components/report/firm-logo.tsx`).
+
+## Pipeline (`lib/pipeline.ts`)
+
+Monolithic Next.js 16 on Vercel; "backend" = route handlers, Google Cloud provides
+Gemini + Firestore.
 
 ```
-seed: company name -> route+resolve domain (Gemini) -> exa.findSimilar
-      sector thesis -> exa.search (semantic)
-  -> discover the company set
-  -> emerging pass (under-the-radar names)
-  -> cluster + write tear sheets (one holistic Gemini structured-JSON call)
-  -> enrich each with a recent signal (Exa, bounded concurrency, streamed)
-  -> executive summary (Gemini)  [web: last · PDF: first]
-  -> stream as NDJSON -> branded web report -> PDF export
+resolve+route (Gemini) → discover (findSimilar + semantic search) → relevance gate
+  (Gemini, drops name-collisions) → emerging pass (Exa Agent, flagged) →
+  cluster + tear sheets (Gemini) → per-company intel (Exa text+highlights search) →
+  quant extraction (one batched Gemini pass, evidence-only) → exec summary (Gemini)
+  → stream NDJSON → save to Firestore → branded slide deck → PDF
 ```
 
-### Key files
+Key files:
+- `lib/exa.ts` — `discoverSimilarCompanies`, `searchCompanies`, `searchEmerging`,
+  `resolveCompanyDomain`, `agentDiscoverEmerging` (Exa Agent), `fetchCompanyIntel`
+  (text+highlights → facts for quant + a recent signal), `fetchSiteContent`.
+- `lib/gemini.ts` — `gemini-3.1-flash-lite`, seed 7, structured JSON; `UNTRUSTED_GUARD`
+  prompt-injection defense.
+- `lib/pipeline.ts` — `streamReport(query, emit, {firmId})`: relevance gate
+  (`filterRelevant`), clustering (`synthesizeLandscape`), batched quant (`extractQuant`).
+- `lib/metrics.ts` — derived analytics over `Company[]`: stage mix, segment sizes,
+  recency, emerging/Exa-edge count, and the per-lens index (IPO readiness /
+  fragmentation / momentum). Pure, no fabrication.
+- `lib/store.ts` + `lib/firestore.ts` — persist/load reports for shareable `/r/[id]`.
 
-- `lib/exa.ts` — Exa calls: `discoverSimilarCompanies` (findSimilar), `searchCompanies`,
-  `searchEmerging`, `fetchSiteContent`, `fetchRecentSignal`, `resolveCompanyDomain`,
-  and `agentDiscoverEmerging` (Exa Agent).
-- `lib/gemini.ts` — `gemini-3.1-flash-lite`, seed 7, structured JSON + text. Carries
-  the `UNTRUSTED_GUARD` prompt-injection defense (fetched web text is hostile-by-default).
-- `lib/pipeline.ts` — `streamReport(query, emit)`: routing, discovery, clustering,
-  enrichment, synthesis, all emitted as `StreamEvent`s.
-- `lib/firms.ts` — the 6 client firms (Goldman Sachs, J.P. Morgan Chase, KKR,
-  BlackRock, Benchmark, a16z) with accent/surface theming. Logos are styled
-  wordmarks (no trademarked image assets bundled).
-- `app/api/report/stream/route.ts` — NDJSON streaming route (nodejs, maxDuration 120),
-  rate-limited + budget-gated.
-- `lib/use-report-stream.ts` — client hook that consumes the NDJSON stream.
-- `components/report/*` — branded report UI (market map, tear sheets, emerging,
-  executive summary, firm picker). Exa chrome: `components/exa-header.tsx`,
-  `exa-footer.tsx`, `exa-logo.tsx` (ported from williamzhu.ai/exa-growth).
+## Quant (honesty)
 
-### Exa Agent (hybrid, flagged)
+Per-company `foundedYear / funding / stage / employees / region` are **estimated
+from public web** (Exa text → batched Gemini extraction), blank when not evident —
+never invented. The quant slide labels coverage ("N/M with funding data"). No
+revenue/valuation/multiples. Derived analytics + the lens index always populate.
 
-The emerging/under-the-radar discovery can run through **Exa Agent** deep research
-(`exa.agent.runs.create`, effort `low`, structured output) instead of the freshness
-search. Gated by `EXA_AGENT_EMERGING` (off by default; falls back to search on any
-miss). The streaming search path stays the demo-safe spine. Verified end-to-end at
-~17s with the flag on.
+## Deck (`components/deck/Deck.tsx`, `components/report/`)
+
+`Deck` is a carousel (prev/next, dots, counter, keyboard; print = one slide per
+page). `report-deck.tsx` builds the `Slide[]` from the lens + report and renders it
+(used by the live stream and `/r/[id]`). Slides in `components/report/slides/*`
+read `firm.theme` so each deck is on-brand. Homepage desk cards in
+`components/report/desk-cards.tsx`.
+
+## Persistence + sharing
+
+Firestore (Native) in the `exavantage` GCP project, via a service-account key
+(`GCP_SERVICE_ACCOUNT_KEY` + `GCP_PROJECT_ID`). Reports are saved server-side at the
+end of the stream; `/r/[id]` renders the saved deck. Stateless otherwise.
 
 ## Environment
 
-Secrets live in gitignored `.env.local` (and Vercel project env). `.env.example`
-lists the keys. Required: `EXA_API_KEY`, `GEMINI_API_KEY`. Analytics:
-`NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`. Optional cost control:
-`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `DAILY_REPORT_BUDGET`.
-Optional: `EXA_AGENT_EMERGING`.
+Secrets in gitignored `.env.local` (+ Vercel). `.env.example` lists keys. Required:
+`EXA_API_KEY`, `GEMINI_API_KEY`. Firestore: `GCP_PROJECT_ID`, `GCP_SERVICE_ACCOUNT_KEY`.
+Analytics: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`. Cost control:
+`UPSTASH_REDIS_REST_URL/TOKEN`, `DAILY_REPORT_BUDGET`. Exa Agent: `EXA_AGENT_EMERGING`.
 
 ## Conventions
 
-- Next.js 16 has breaking changes vs. older versions — check `node_modules/next/dist/docs/`
-  before editing route/config code.
-- No em-dashes in copy. The named firms are an intentional, approved exception to
-  the "no company names" rule (they are the product feature).
-- Commit and push every change; keep this file and docs in sync with the code.
+- Next.js 16 has breaking changes — check `node_modules/next/dist/docs/` before
+  editing route/config code.
+- No em-dashes in copy. Real firm names are an intentional, approved exception to
+  the "no company names" rule (they are the product).
+- Footer is intentionally minimal ("Built by William Zhu · Powered by Exa").
+- Commit and push every change; keep this file and docs in sync.

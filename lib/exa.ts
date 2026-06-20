@@ -239,6 +239,64 @@ export async function fetchSiteContent(domain: string): Promise<SiteContent> {
   };
 }
 
+export type CompanyIntel = {
+  /** One recent signal (news/announcement), if found. */
+  signal?: string;
+  signalUrl?: string;
+  /** Concatenated facts text (summaries + highlights) for quant extraction. */
+  facts: string;
+};
+
+/**
+ * Per-company intel: one Exa search that surfaces both a recent signal AND the
+ * company facts (funding, headcount, founding year, HQ) that the thin discovery
+ * summaries lack. The facts text is later fed to a single Gemini quant pass.
+ */
+export async function fetchCompanyIntel(companyName: string): Promise<CompanyIntel> {
+  try {
+    const r = await withRetry(
+      () =>
+        exa().search(
+          `${companyName}: total funding raised, employee count, year founded, headquarters, and latest news`,
+          {
+            type: "auto",
+            numResults: 4,
+            text: { maxCharacters: 1200 },
+            highlights: { numSentences: 2, highlightsPerUrl: 2, query: `${companyName} funding employees founded headquarters` },
+          } as Parameters<Exa["search"]>[1],
+        ),
+      { label: `exa.intel ${companyName}`, retries: 1, baseMs: 500 },
+    );
+    const results = (r?.results ?? []) as Array<{
+      url?: string;
+      title?: string;
+      text?: string;
+      highlights?: string[];
+      publishedDate?: string;
+    }>;
+    if (results.length === 0) return { facts: "" };
+
+    const facts = results
+      .map((res) => [res.title, (res.highlights ?? []).join(" "), res.text].filter(Boolean).join(" "))
+      .filter(Boolean)
+      .join("\n")
+      .slice(0, 2200);
+
+    // Pick the freshest result with content as the signal.
+    const dated = [...results].sort((a, b) => (b.publishedDate || "").localeCompare(a.publishedDate || ""));
+    const sigHit = dated.find((h) => (h.highlights ?? []).length || h.text);
+    const signalText = (sigHit?.highlights ?? [])[0] || sigHit?.text;
+
+    return {
+      signal: signalText ? signalText.slice(0, 280) : undefined,
+      signalUrl: sigHit?.url,
+      facts,
+    };
+  } catch {
+    return { facts: "" };
+  }
+}
+
 /** Recent-signal pass for a single company: latest news/announcements. */
 export async function fetchRecentSignal(
   companyName: string,

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ExaHeader } from "@/components/exa-header";
-import { ExaFooter } from "@/components/exa-footer";
+import { SiteFooter } from "@/components/site-footer";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -11,44 +11,44 @@ export const metadata: Metadata = {
 const STEPS = [
   {
     n: "01",
-    title: "Route the request",
+    title: "Pick a desk, route the request",
     plain:
-      "You type one thing: a company name or a sector thesis. We figure out which it is.",
-    tech: "Gemini 3.1 Flash Lite classifies the input as company vs sector and, for a company, resolves its official domain.",
+      "Choose Investment Bank, Private Equity, or Venture Capital, then type a company or an industry. Each desk tailors the whole report.",
+    tech: "Gemini 3.1 Flash Lite classifies the input as company vs industry and resolves a company's domain. The desk sets the lens (IPO comps / buyout targets / landscape).",
   },
   {
     n: "02",
-    title: "Discover the universe",
+    title: "Discover, then filter for relevance",
     plain:
-      "We find the companies that matter, including ones the big databases have not catalogued.",
-    tech: "Company mode: Exa findSimilar on the seed domain. Sector mode: Exa neural search (category: company). Results deduped by domain.",
+      "We find the companies that matter, including ones the big databases have not catalogued, and drop the look-alikes that only share a name.",
+    tech: "Exa findSimilar (company) plus a semantic search built from the seed's real business; a Gemini relevance gate removes name-collisions, judging by what each company does.",
   },
   {
     n: "03",
-    title: "Surface the under-the-radar names",
+    title: "Surface what's emerging",
     plain:
-      "A second pass looks for newer, lower-profile companies that the structured databases lag on.",
-    tech: "A freshness-tuned Exa search (startPublishedDate window) flags emerging companies not already in the core set.",
+      "A deep-research pass looks for newer, lower-profile companies the structured databases lag on.",
+    tech: "Exa Agent deep research (effort-dialed) finds under-the-radar names; falls back to a freshness-tuned Exa search.",
   },
   {
     n: "04",
-    title: "Cluster and profile",
+    title: "Cluster, profile, and quantify",
     plain:
-      "We group the companies into sub-segments and write a tear sheet for each.",
-    tech: "One holistic Gemini structured-JSON call builds the market-map clusters and per-company one-liners, summaries, similar-to rows, and emerging flags from the Exa summaries.",
+      "We group the companies into sub-segments, write a tear sheet for each, and pull the numbers: funding, founded year, stage, headcount, HQ.",
+    tech: "A Gemini pass builds the clusters and tear sheets. A per-company Exa search pulls page text, and one batched Gemini pass extracts quant from evidence only (blank when unknown). No invented figures.",
   },
   {
     n: "05",
-    title: "Pull recent signals",
-    plain: "Each company gets one fresh signal: funding, a launch, a partnership.",
-    tech: "A per-company Exa search over the trailing 180 days, run with bounded concurrency, streamed in as it resolves.",
+    title: "Catch recent signals",
+    plain: "Each company gets a fresh signal: funding, a launch, a hire.",
+    tech: "The same per-company Exa search surfaces the freshest result with content, streamed in with bounded concurrency.",
   },
   {
     n: "06",
-    title: "Synthesize and brand",
+    title: "Synthesize into a branded deck",
     plain:
-      "We write the executive summary and render the whole thing in your firm's brand, exportable to PDF.",
-    tech: "A final Gemini synthesis call writes the summary; the report renders client-branded and exports to PDF with the summary moved to the top.",
+      "We write the memo and render everything as a page-by-page slide deck in your firm's brand, shareable by link and exportable to PDF.",
+    tech: "A Gemini synthesis call writes the closing memo; the deck saves to Firestore for a shareable /r/[id] page and prints one slide per page.",
   },
 ];
 
@@ -64,18 +64,18 @@ export default function AboutPage() {
           </h1>
           <p className="mt-5 text-lg leading-relaxed text-muted-foreground">
             Exa Vantage is built for the analyst or associate who assembles
-            research: the person who maps a sector, builds the comp set, and
-            catches this week&apos;s signals. It compresses the slow first 80% of
-            that work, the searching and synthesis, without replacing the
+            research. Pick a desk (Investment Bank, Private Equity, or Venture
+            Capital) and the report is tailored to that workflow: IPO
+            comparables, acquisition targets, or a competitive landscape. It
+            compresses the slow first 80% of the work without replacing the
             analyst&apos;s judgment.
           </p>
 
           <div className="mt-6 rounded-xl bg-secondary px-5 py-4 text-[15px] text-secondary-foreground">
             <span className="font-semibold">The whole flow in one line:</span>{" "}
-            seed (company or thesis) → Exa discovers the company set → cluster
-            into sub-segments → profile each with a recent signal → surface the
-            hidden ones → Gemini writes the synthesis → branded report, exported
-            to PDF.
+            pick a desk → Exa discovers the company set → filter for relevance →
+            surface the emerging names → cluster, profile, and quantify → Gemini
+            writes the memo → a branded slide deck, shareable and exportable.
           </div>
 
           <div className="mt-12 space-y-px overflow-hidden rounded-xl border border-border">
@@ -100,32 +100,33 @@ export default function AboutPage() {
             <ul className="mt-4 grid grid-cols-1 gap-2 text-[15px] text-muted-foreground sm:grid-cols-2">
               <li>
                 <span className="font-medium text-foreground">Exa</span> — neural
-                search, findSimilar, and content summaries
+                search, findSimilar, content text, and Exa Agent deep research
               </li>
               <li>
                 <span className="font-medium text-foreground">
                   Gemini 3.1 Flash Lite
                 </span>{" "}
-                — routing, clustering, synthesis (seed 7, structured JSON)
+                — routing, relevance, clustering, quant, synthesis (seed 7, JSON)
               </li>
               <li>
                 <span className="font-medium text-foreground">Next.js on Vercel</span>{" "}
                 — App Router, NDJSON streaming route
               </li>
               <li>
-                <span className="font-medium text-foreground">PostHog</span> —
-                product analytics
+                <span className="font-medium text-foreground">Firestore</span> —
+                saved reports for shareable links
               </li>
             </ul>
             <p className="mt-6 text-[14px] text-muted-foreground">
-              What Exa is not here: structured financials, cap tables, or stock
-              prices. Exa Vantage wins on discovery of the unknown, freshness from
-              unstructured sources, and what a company actually does.
+              Quantitative figures (funding, founded year, headcount, HQ) are
+              estimated from public web sources and left blank when not evident,
+              never invented. Exa Vantage wins on discovery of the unknown,
+              freshness from unstructured sources, and what a company actually does.
             </p>
           </div>
         </div>
       </main>
-      <ExaFooter />
+      <SiteFooter />
     </div>
   );
 }

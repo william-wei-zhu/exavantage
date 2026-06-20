@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ExaHeader } from "@/components/exa-header";
-import { ExaFooter } from "@/components/exa-footer";
+import { SiteFooter } from "@/components/site-footer";
 
 export const metadata: Metadata = {
   title: "Privacy & Disclaimer",
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
           </div>
         </div>
       </main>
-      <ExaFooter />
+      <SiteFooter />
     </div>
   );
 }

@@ -3,48 +3,54 @@
 **Your vantage point on every market.**
 
 An AI research analyst for financial-services teams, built on [Exa](https://exa.ai)
-and Google Gemini. Pick your firm, type a company name or a sector thesis, and get
-a polished, firm-branded market-intelligence report you could walk into a partner
-meeting with: a market map, company tear sheets, an emerging / under-the-radar
-section, and an executive summary, all exportable to PDF.
+and Google Gemini. Pick one of three desks, type a company or an industry/thesis,
+and get a tailored, firm-branded research **slide deck** you could walk into a
+partner meeting with, shareable by link and exportable to PDF.
 
 Live at **[exavantage.com](https://exavantage.com)**.
 
+## Three desks, one engine
+
+One shared Exa discovery engine, three tailored lenses:
+
+- **Goldman Sachs (Investment Bank)** — IPO candidates & comparables.
+- **Blackstone (Private Equity)** — acquisition targets & buy-and-build.
+- **a16z (Venture Capital)** — competitive landscape & emerging companies.
+
+Each desk produces a six-slide deck (cover → market map → a lens-specific highlight
+→ quant → recent signals → synthesis) in that firm's brand.
+
 ## How it works
 
-One unified pipeline, two entry points (the only fork is the seed):
-
-- **Company mode** — resolve the company's domain, then Exa `findSimilar` to find
-  lookalikes (including ones not yet in PitchBook).
-- **Sector mode** — Exa neural `search` over the thesis to map the universe.
-
-Both flows then cluster into sub-segments, profile each company (summary + a recent
-signal + similar companies), surface the under-the-radar names, and synthesize an
-executive summary with Gemini. Results stream into the page as they're built.
-
-The under-the-radar discovery can optionally run through **Exa Agent** deep research
-(`EXA_AGENT_EMERGING=1`).
+Resolve the input → discover the company set with Exa `findSimilar` (company) or
+neural `search` (industry) → a relevance gate drops name-collisions → an Exa Agent
+pass surfaces emerging names → Gemini clusters and writes the tear sheets → a
+per-company Exa search pulls facts, and one batched Gemini pass extracts quant
+(funding, founded, stage, headcount, HQ; estimated from public web, blank when
+unknown) → Gemini writes the synthesis. Results stream in, save to Firestore, and
+get a shareable `/r/[id]` page.
 
 ## Stack
 
-Next.js 16 (App Router) · Tailwind v4 · TypeScript · Exa (`exa-js`) ·
-Gemini 3.1 Flash Lite (`@google/genai`) · PostHog · Vercel.
+Next.js 16 (App Router) · Tailwind v4 · TypeScript · Exa (`exa-js`, incl. Exa Agent)
+· Gemini 3.1 Flash Lite (`@google/genai`) · Firestore · PostHog · Vercel.
 
 ## Local development
 
 ```bash
-cp .env.example .env.local   # fill in EXA_API_KEY and GEMINI_API_KEY
+cp .env.example .env.local   # fill in EXA_API_KEY and GEMINI_API_KEY (+ GCP_* for sharing)
 npm install
 npm run dev                  # http://localhost:3000
 ```
 
-Required env: `EXA_API_KEY`, `GEMINI_API_KEY`. See `.env.example` for the rest
-(PostHog analytics, optional Upstash rate-limiting, the Exa Agent flag).
+Required: `EXA_API_KEY`, `GEMINI_API_KEY`. Firestore (shareable links) needs
+`GCP_PROJECT_ID` + `GCP_SERVICE_ACCOUNT_KEY`. See `.env.example` for the rest.
 
 ## Disclaimer
 
-Informational only, not investment advice. The named firms are used to illustrate a
-branded deliverable; Exa Vantage is an independent demonstration and is not
-affiliated with or endorsed by them.
+Informational only, not investment advice. Quantitative figures are estimates from
+public web sources and may be incomplete. The named firms illustrate a branded
+deliverable; Exa Vantage is an independent demonstration, not affiliated with or
+endorsed by them.
 
 Built by [William Zhu](https://www.linkedin.com/in/william-wei-zhu/).

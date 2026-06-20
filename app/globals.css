@@ -102,6 +102,23 @@
   }
 }
 
+/* Slide deck: only the active slide shows on screen; print reveals all, one per
+ * page, so PDF export is a true page-per-slide deck. */
+.deck-slide-hidden {
+  display: none;
+}
+.deck-slide-active {
+  animation: deck-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes deck-rise {
+  from {
+    transform: translateY(8px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -127,5 +144,16 @@
   }
   main {
     padding-top: 0 !important;
+  }
+  /* Reveal every slide, one per printed page. */
+  .deck-slide-hidden {
+    display: block !important;
+  }
+  .deck-slides > div {
+    break-before: page;
+    break-inside: avoid;
+  }
+  .deck-slides > div:first-child {
+    break-before: auto;
   }
 }

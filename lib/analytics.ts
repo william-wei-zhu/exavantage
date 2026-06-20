@@ -12,8 +12,6 @@ export function initAnalytics() {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
     person_profiles: "identified_only",
     capture_pageview: true,
-    // The only thing visitors type here is a public company/sector to research
-    // (no PII), so leave inputs visible to see what people actually search.
     disable_session_recording: false,
     session_recording: {
       maskAllInputs: false,

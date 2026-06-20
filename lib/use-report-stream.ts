@@ -17,6 +17,7 @@ export type ReportState = {
   emerging: Company[];
   executiveSummary: string;
   generatedAt: string | null;
+  reportId: string | null;
 };
 
 const EMPTY: ReportState = {
@@ -31,6 +32,7 @@ const EMPTY: ReportState = {
   emerging: [],
   executiveSummary: "",
   generatedAt: null,
+  reportId: null,
 };
 
 /** Consume the NDJSON report stream and expose a progressively-built report. */
@@ -43,14 +45,16 @@ export function useReportStream() {
     setState(EMPTY);
   }, []);
 
-  const run = useCallback(async (query: string) => {
+  const run = useCallback(async (query: string, firmId?: string) => {
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
     setState({ ...EMPTY, status: "loading", phase: "Starting", query });
 
     try {
-      const res = await fetch(`/api/report/stream?q=${encodeURIComponent(query)}`, {
+      const qs = new URLSearchParams({ q: query });
+      if (firmId) qs.set("firm", firmId);
+      const res = await fetch(`/api/report/stream?${qs.toString()}`, {
         signal: ac.signal,
       });
       if (!res.ok || !res.body) {
@@ -83,7 +87,13 @@ export function useReportStream() {
             case "summary":
               return { ...s, executiveSummary: e.executiveSummary };
             case "done":
-              return { ...s, status: "done", phase: "", generatedAt: e.generatedAt };
+              return {
+                ...s,
+                status: "done",
+                phase: "",
+                generatedAt: e.generatedAt,
+                reportId: e.reportId ?? null,
+              };
             case "error":
               return { ...s, status: "error", error: e.message };
             default:

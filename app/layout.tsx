@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Geist } from "next/font/google";
+import {
+  Cormorant_Garamond,
+  Geist,
+  Source_Serif_4,
+  Playfair_Display,
+  Inter,
+  Space_Grotesk,
+} from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@/components/analytics";
 
@@ -15,6 +22,20 @@ const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
   display: "swap",
 });
+
+// Per-firm brand fonts (substitutes for the firms' proprietary typefaces),
+// applied within each bespoke report template via CSS variables.
+const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-source-serif", display: "swap" });
+const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", display: "swap" });
+
+const FIRM_FONT_VARS = [
+  sourceSerif.variable,
+  playfair.variable,
+  inter.variable,
+  spaceGrotesk.variable,
+].join(" ");
 
 const TAGLINE = "Your vantage point on every market.";
 
@@ -45,7 +66,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${cormorant.variable}`}>
+    <html lang="en" className={`${geist.variable} ${cormorant.variable} ${FIRM_FONT_VARS}`}>
       <body className="exa-theme antialiased">
         <Analytics />
         {children}

@@ -14,6 +14,7 @@ const PER_DAY = 40;
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const q = (url.searchParams.get("q") || "").trim();
+  const firmId = (url.searchParams.get("firm") || "").trim().slice(0, 40) || undefined;
 
   if (!q || q.length < 2) {
     return Response.json({ error: "Missing query" }, { status: 400 });
@@ -59,7 +60,7 @@ export async function GET(req: Request) {
         }
       };
       try {
-        await streamReport(q, send);
+        await streamReport(q, send, { firmId });
       } catch (err) {
         if (err instanceof AtCapacityError) {
           send({ type: "error", message: "The tool is at capacity. Try again later." });
