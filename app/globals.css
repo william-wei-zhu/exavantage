@@ -1,0 +1,131 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Exavantage recreates the official Exa look for the outer shell. The whole app
+ * is wrapped in a .exa-theme div (see layout.tsx) whose plain-hex token overrides
+ * win over :root by inheritance distance, so the tool stays light like exa.ai.
+ * Color utilities (bg-background, text-foreground, border-border, bg-primary…)
+ * resolve through the @theme inline var() mappings below. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-exa-sans), "Geist", system-ui, sans-serif;
+  --font-heading: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-serif: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+}
+
+/* Exa's exact palette. These are the defaults at :root so the app is light and
+ * on-brand everywhere; .exa-theme re-declares them so scoped usage also works. */
+:root,
+.exa-theme {
+  --background: #ffffff;
+  --foreground: #111111;
+  --card: #ffffff;
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #111111;
+  --muted: #f5f5f5;
+  --muted-foreground: #525252;
+  --accent: #f5f5f5;
+  --accent-foreground: #111111;
+  --border: #d4d4d4; /* darker than Exa's default so chrome borders read clearly */
+  --input: #d4d4d4;
+  --primary: #1f40ed; /* Exa brand blue */
+  --primary-foreground: #ffffff;
+  --destructive: #dc2626;
+  --ring: #1f40ed;
+  --radius: 0.375rem; /* Exa's flatter card radius */
+}
+
+/* Fonts: the font-* utilities inline literal family names, so the var swap can't
+ * reach them. Override the family directly (unlayered, so it beats Tailwind's
+ * utilities layer). Mirrors Exa's pairing: a refined Garamond serif for titles
+ * (font-heading) and a clean sans (Geist, close to Exa's ABC Diatype) for body. */
+:root,
+.exa-theme,
+.exa-theme .font-sans {
+  font-family: var(--font-exa-sans), "Geist", system-ui, sans-serif;
+}
+.exa-theme .font-heading,
+.exa-theme .font-serif {
+  font-family: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+@layer utilities {
+  .section-label {
+    @apply text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground;
+  }
+  .editorial-rule {
+    @apply h-px bg-gradient-to-r from-border via-border/60 to-transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print / PDF: drop the Exa chrome so the exported report is the firm's
+ * leave-behind only. The report root opts in with the `print-report` class. */
+@media print {
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+  }
+  main {
+    padding-top: 0 !important;
+  }
+}
