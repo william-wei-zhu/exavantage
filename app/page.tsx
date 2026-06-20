@@ -1,15 +1,8 @@
 import { ExaHeader } from "@/components/exa-header";
 import { SiteFooter } from "@/components/site-footer";
 import { ReportExperience } from "@/components/report/report-experience";
-import { RecentDecks } from "@/components/report/recent-decks";
-import { listRecentReports } from "@/lib/store";
 
-// Refresh the "Recent decks" gallery periodically (newly generated decks appear).
-export const revalidate = 60;
-
-export default async function Home() {
-  const decks = await listRecentReports(9);
-
+export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <ExaHeader />
@@ -30,8 +23,6 @@ export default async function Home() {
           <div className="mt-10">
             <ReportExperience />
           </div>
-
-          <RecentDecks decks={decks} />
         </div>
       </main>
       <SiteFooter />
