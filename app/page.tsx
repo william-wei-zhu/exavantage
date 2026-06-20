@@ -16,7 +16,7 @@ export default function Home() {
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
               KKR grows businesses by acquiring the smaller players around them. Exa finds the hidden
-              ones not in PitchBook.
+              ones not in PitchBook, so the deal team can prioritize the best acquisition targets.
             </p>
           </div>
 
