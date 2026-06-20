@@ -1,7 +1,7 @@
 import type { PageInfo, SlideProps } from "./bits";
 import { BarChart, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { lensIndex, stageBucket, stageMix } from "@/lib/metrics";
+import { lensIndex, ownershipSignal, stageBucket, stageMix } from "@/lib/metrics";
 import { truncateWords } from "@/lib/format";
 
 /** The fragmentation thesis: the argument (not duplicate stats) that this market
@@ -15,9 +15,9 @@ export function HighlightSlide({ report, firm, lens, page }: SlideProps & { page
   const idx = lensIndex(firm.lens, report);
   const total = Math.max(1, cos.length);
   const subScale = cos.filter((c) => ["Seed", "Early", "Growth", "Other"].includes(stageBucket(c.stage))).length;
-  const founderOwned = cos.filter((c) => !c.funding).length;
-  const pctSubScale = Math.round((100 * subScale) / total);
-  const pctFounder = Math.round((100 * founderOwned) / total);
+  // Stricter than "no disclosed funding": ownershipSignal only reads "Founder-owned"
+  // when a company is unfunded AND old enough, so this count is realistic, not 100%.
+  const founderOwned = cos.filter((c) => ownershipSignal(c) === "Founder-owned").length;
   const stages = stageMix(cos);
 
   return (
@@ -55,9 +55,14 @@ export function HighlightSlide({ report, firm, lens, page }: SlideProps & { page
               <span>Fragmented = more runway</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <ProofStat value={`${pctSubScale}%`} label="Sub-scale targets" color={t.accent} t={t} />
-            <ProofStat value={`${pctFounder}%`} label="Likely founder-owned" color={t.secondary} t={t} />
+          <div>
+            <div className="grid grid-cols-2 gap-3">
+              <ProofStat value={`${subScale} of ${total}`} label="Sub-scale targets" color={t.accent} t={t} />
+              <ProofStat value={`${founderOwned} of ${total}`} label="Founder-owned" color={t.secondary} t={t} />
+            </div>
+            <p className="mt-2 text-[11px] leading-snug" style={{ color: `${t.ink}66` }}>
+              Across the discovered set; stage and ownership are inferred where disclosed.
+            </p>
           </div>
         </div>
 

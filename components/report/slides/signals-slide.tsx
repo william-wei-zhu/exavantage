@@ -1,7 +1,8 @@
+import { ArrowUpRight } from "lucide-react";
 import type { PageInfo, SlideProps } from "./bits";
 import { Favicon, HeaderBand, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords } from "@/lib/format";
+import { truncateWords, urlForDomain } from "@/lib/format";
 
 /** The Exa Vantage: proprietary, off-database sourcing. The names PitchBook and
  *  Sourcescrub never indexed mean fewer bidders, off-auction conversations, and
@@ -27,7 +28,10 @@ export function SignalsSlide({ report, firm, lens, page }: SlideProps & { page?:
             <div key={c.domain} className="flex gap-3 rounded-lg px-3.5 py-2.5" style={{ background: `${t.accent}12`, ...PRINT_EXACT }}>
               <Favicon domain={c.domain} size={22} className="mt-0.5" />
               <div className="min-w-0">
-                <span className="text-[14px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
+                <a href={urlForDomain(c.domain)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:underline">
+                  <span className="text-[14px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
+                  <ArrowUpRight className="h-3 w-3 shrink-0" style={{ color: `${t.ink}70` }} />
+                </a>
                 <p className="line-clamp-2 text-[12.5px] leading-snug" style={{ color: `${t.ink}a8` }}>{truncateWords(c.oneLiner, 14)}</p>
               </div>
             </div>

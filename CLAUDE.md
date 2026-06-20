@@ -110,6 +110,15 @@ Exa-cited with a confidence label (or omitted); per-company quant is estimated-f
 blank when unknown; `ownershipSignal` and the indices are derived and labeled illustrative; the
 recommendation is framed as analyst judgment.
 
+**No saturated/too-clean optics.** `lensIndex` (`lib/metrics.ts`) is weighted/capped at **94** so a
+maxed set lands high-but-believable, never a flat 100. On the Fragmentation slide
+(`highlight-slide.tsx`) the two proof stats are honest **counts** ("11 of 13"), not percentages that
+read 100% off sparse data; "Founder-owned" uses the stricter `ownershipSignal(c) === "Founder-owned"`
+(needs no funding AND age ≥ 8), with a coverage caption. **Per-company verifiability:** every company
+name links to its live site (`urlForDomain`, small `ArrowUpRight` ↗) on the Priority Targets cards,
+the Appendix `CompsTable`, and the off-database `signals-slide` cards, so a partner can click through
+and confirm each target is real.
+
 **Independence gate (two layers, both in `lib/pipeline.ts`):** a roll-up target must be a company
 you can actually buy, so candidates already owned by a larger parent are dropped before they reach
 the deck. (1) `filterIndependent` runs right after the relevance gate and uses Gemini world

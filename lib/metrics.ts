@@ -111,8 +111,10 @@ export function lensIndex(_lens: LensId, report: Report): LensIndex {
     return b === "Seed" || b === "Early" || b === "Other" || b === "Growth";
   }).length;
   const segments = report.segments.length || 1;
-  // More companies spread across more segments => more fragmented.
-  const score = Math.min(100, Math.round(share(subScale) * 0.7 + Math.min(40, segments * 8)));
+  // More companies spread across more segments => more fragmented. Weighted so a
+  // maxed-out set lands in the high 80s / low 90s (cap 94), never a flat 100 that
+  // reads as a saturated, too-clean metric.
+  const score = Math.min(94, Math.round(share(subScale) * 0.6 + Math.min(34, segments * 7)));
   return {
     score,
     label: "Fragmentation Index",

@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { ArrowUpRight, Check } from "lucide-react";
 import type { Company, Report, Segment } from "@/lib/types";
 import type { Firm, FirmTheme } from "@/lib/firms";
 import type { LensCopy } from "@/lib/lenses";
@@ -319,7 +319,10 @@ export function CompsTable({ companies, t }: { companies: Company[]; t: FirmThem
               <td className="py-2 pl-3 pr-3">
                 <span className="inline-flex items-center gap-2">
                   <Favicon domain={c.domain} size={16} />
-                  <span className="font-semibold">{c.name}</span>
+                  <a href={urlForDomain(c.domain)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-semibold hover:underline">
+                    {c.name}
+                    <ArrowUpRight className="h-2.5 w-2.5 shrink-0 opacity-50" />
+                  </a>
                 </span>
               </td>
               {cols.stage && <Td>{c.stage}</Td>}

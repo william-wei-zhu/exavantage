@@ -1,9 +1,10 @@
+import { ArrowUpRight } from "lucide-react";
 import type { Company } from "@/lib/types";
 import type { PageInfo, SlideProps } from "./bits";
 import { CompsTable, Favicon, TierBadge, evidenceLine } from "./bits";
 import { SlideFrame } from "./slide-frame";
 import { quantCoverage } from "@/lib/metrics";
-import { truncateWords } from "@/lib/format";
+import { truncateWords, urlForDomain } from "@/lib/format";
 
 /** Rows of the full-screen comps table per appendix slide (kept small so each
  *  appendix page fits the fixed 16:9 canvas without overflowing). */
@@ -38,7 +39,7 @@ export function QuantSlide({ report, firm, lens, page }: SlideProps & { page?: P
       title={thesis?.takeaways.targets ?? lens.quantTitle}
       titleRight={`${cov.funding}/${cov.total} with funding data`}
       page={page}
-      note="Figures estimated from public web sources, blank when none found; ownership inferred, not verified. Not investment advice."
+      note="Each name links to the live company. Figures estimated from public web sources, blank when none found; ownership inferred, not verified. Not investment advice."
     >
       <div className="grid h-full grid-cols-1 content-start gap-3 sm:grid-cols-2">
         {tier1.length ? (
@@ -46,7 +47,10 @@ export function QuantSlide({ report, firm, lens, page }: SlideProps & { page?: P
             <div key={c.domain} className="rounded-lg border p-3.5" style={{ borderColor: `${t.ink}1f` }}>
               <div className="flex items-center gap-2">
                 <Favicon domain={c.domain} size={22} />
-                <span className="text-[16px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
+                <a href={urlForDomain(c.domain)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:underline">
+                  <span className="text-[16px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
+                  <ArrowUpRight className="h-3 w-3 shrink-0" style={{ color: `${t.ink}80` }} />
+                </a>
                 <span className="ml-auto"><TierBadge tier={1} t={t} /></span>
               </div>
               <p className="mt-2 line-clamp-2 text-[14px] leading-snug" style={{ color: `${t.ink}d0` }}>
