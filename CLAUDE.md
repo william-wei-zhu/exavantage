@@ -123,8 +123,10 @@ is transient (not persisted on `Company`).
 ## Marketing chrome (co-branded "Exa Vantage, for KKR")
 
 Clean white Exa shell, co-branded for KKR. `components/exa-header.tsx` = enlarged Exa Vantage lockup
-(`exa-logo.tsx`) + a "for KKR" co-brand (the `public/logos/kkr.svg`) + a single "How it works" link
-(no Pricing/Docs/About-Exa). Homepage hero (`app/page.tsx`): "Exa Vantage · built for KKR" eyebrow,
+(`exa-logo.tsx`) + a "for KKR" co-brand (the `public/logos/kkr.svg`) + a **Home** link and a "How it
+works" link (no Pricing/Docs/About-Exa). The Home link is a plain `<a href="/">` (full reload, not a
+Next `<Link>`) so it resets the inline report view: after an inline generation the route stays "/"
+while the URL shows "/r/[id]", and a same-route client nav wouldn't clear the deck. Homepage hero (`app/page.tsx`): "Exa Vantage · built for KKR" eyebrow,
 the **"Your vantage on every deal."** tagline, a plain-English subhead; `report-experience.tsx` has a
 3-up icon value band. The tagline is set in **Hanken Grotesk** (KKR's corporate-type stand-in, the
 `--font-hanken` already loaded in `layout.tsx`), sized to sit on **one row**, with the words rising
