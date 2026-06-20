@@ -129,6 +129,7 @@ export type Report = {
 export type StreamEvent =
   | { type: "progress"; phase: string; detail?: string }
   | { type: "meta"; mode: ReportMode; query: string; anchor?: { name: string; domain: string } }
+  | { type: "cached"; reportId: string }
   | { type: "market"; marketContext: MarketContext }
   | { type: "segments"; segments: Segment[] }
   | { type: "company"; company: Company }

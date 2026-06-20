@@ -12,7 +12,7 @@ import {
 } from "./exa";
 import { generateJSON, Type, type Schema } from "./gemini";
 import { mapLimit, brandNameFromDomain, domainOf, isValidDomain, normalizeDomain } from "./util";
-import { saveReport } from "./store";
+import { findExistingReport, saveReport } from "./store";
 import type { Company, DealThesis, MarketContext, Report, ReportMode, Segment, StreamEvent } from "./types";
 
 type Emit = (e: StreamEvent) => void | Promise<void>;
@@ -557,6 +557,15 @@ export async function streamReport(
   emit: Emit,
   opts: { firmId?: string } = {},
 ): Promise<void> {
+  // Generation cache: if a deck for this exact input already exists, open it
+  // instantly instead of re-running the ~100s pipeline.
+  await emit({ type: "progress", phase: "Checking for a saved deck" });
+  const cachedByInput = await findExistingReport(query).catch(() => null);
+  if (cachedByInput) {
+    await emit({ type: "cached", reportId: cachedByInput });
+    return;
+  }
+
   await emit({ type: "progress", phase: "Routing your request" });
   const route = await routeInput(query);
 
@@ -569,6 +578,14 @@ export async function streamReport(
   const anchor = anchorDomain
     ? { name: route.companyName || brandNameFromDomain(anchorDomain), domain: anchorDomain }
     : undefined;
+
+  // Second cache check, now that the official name + domain are resolved (catches
+  // alternate phrasings of the same company that the raw-input check missed).
+  const cachedByResolved = await findExistingReport(restated, anchorDomain).catch(() => null);
+  if (cachedByResolved) {
+    await emit({ type: "cached", reportId: cachedByResolved });
+    return;
+  }
 
   await emit({ type: "meta", mode, query: restated, anchor });
   if (!anchorDomain) {
@@ -760,7 +777,7 @@ export async function streamReport(
   };
   let reportId: string | undefined;
   try {
-    reportId = (await saveReport(report, opts.firmId || "kkr")) ?? undefined;
+    reportId = (await saveReport(report, opts.firmId || "kkr", query)) ?? undefined;
   } catch {
     reportId = undefined;
   }

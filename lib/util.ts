@@ -22,6 +22,12 @@ export function urlForDomain(domain: string): string {
   return `https://${normalizeDomain(domain)}`;
 }
 
+/** Normalize a company name to a cache key: lowercase, alphanumerics only.
+ *  "Service Titan" / "servicetitan" / "ServiceTitan" all collapse to the same key. */
+export function normalizeName(input: string): string {
+  return (input || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
 /** Title-case-ish brand name fallback derived from a domain. */
 export function brandNameFromDomain(domain: string): string {
   const root = normalizeDomain(domain).split(".")[0] || domain;

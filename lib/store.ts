@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { db } from "./firestore";
+import { normalizeDomain, normalizeName } from "./util";
 import type { Report } from "./types";
 
 const COLLECTION = "reports";
@@ -9,6 +10,10 @@ export type StoredReport = Report & {
   id: string;
   firmId: string;
   createdAt: number;
+  /** Normalized name keys (raw input + resolved name) for the generation cache. */
+  nameKeys?: string[];
+  /** Normalized anchor domain for the generation cache. */
+  domainKey?: string;
 };
 
 /** URL-safe short id derived from a UUID. */
@@ -23,21 +28,81 @@ function newId(): string {
 export async function saveReport(
   report: Report,
   firmId: string,
+  rawQuery?: string,
 ): Promise<string | null> {
   const fs = db();
   if (!fs) return null;
   try {
     const id = newId();
+    const nameKeys = Array.from(
+      new Set(
+        [rawQuery, report.anchor?.name, report.query]
+          .map((s) => normalizeName(s || ""))
+          .filter(Boolean),
+      ),
+    );
+    const domainKey = report.anchor?.domain ? normalizeDomain(report.anchor.domain) : undefined;
     const doc: StoredReport = {
       ...report,
       id,
       firmId,
       createdAt: Date.now(),
+      nameKeys,
+      ...(domainKey ? { domainKey } : {}),
     };
     await fs.collection(COLLECTION).doc(id).set(doc);
     return id;
   } catch (e) {
     console.error("[store] saveReport failed:", (e as Error)?.message);
+    return null;
+  }
+}
+
+/** Latest doc id in a snapshot (by createdAt), or null if empty. */
+function latestId(snap: FirebaseFirestore.QuerySnapshot): string | null {
+  let bestId: string | null = null;
+  let bestAt = -1;
+  snap.forEach((doc) => {
+    const at = (doc.get("createdAt") as number) ?? 0;
+    if (at > bestAt) {
+      bestAt = at;
+      bestId = doc.id;
+    }
+  });
+  return bestId;
+}
+
+/**
+ * Generation cache: find an existing deck for a company so we don't regenerate
+ * from scratch. Matches by normalized name first, then by resolved domain.
+ * Returns the latest matching report id, or null. Safe no-op without Firestore.
+ */
+export async function findExistingReport(
+  input: string,
+  domain?: string,
+): Promise<string | null> {
+  const fs = db();
+  if (!fs) return null;
+  try {
+    const key = normalizeName(input);
+    if (key) {
+      const snap = await fs
+        .collection(COLLECTION)
+        .where("nameKeys", "array-contains", key)
+        .limit(12)
+        .get();
+      const id = latestId(snap);
+      if (id) return id;
+    }
+    if (domain) {
+      const dkey = normalizeDomain(domain);
+      const snap = await fs.collection(COLLECTION).where("domainKey", "==", dkey).limit(12).get();
+      const id = latestId(snap);
+      if (id) return id;
+    }
+    return null;
+  } catch (e) {
+    console.error("[store] findExistingReport failed:", (e as Error)?.message);
     return null;
   }
 }

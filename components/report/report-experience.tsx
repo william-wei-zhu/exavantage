@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Loader2, Search } from "lucide-react";
 import { ReportDeck } from "./report-deck";
@@ -21,12 +22,20 @@ export function ReportExperience() {
   const [input, setInput] = useState("");
   const { state, run, reset } = useReportStream();
   const fade = useFadeUpProps();
+  const router = useRouter();
 
+  // When the report saves, reflect its shareable URL in the address bar so a
+  // refresh loads the persisted /r/[id] page and the link is copy-pasteable.
   useEffect(() => {
     if (state.reportId && typeof window !== "undefined") {
       window.history.replaceState(null, "", `/r/${state.reportId}`);
     }
   }, [state.reportId]);
+
+  // Cache hit: the company already has a saved deck, so open it instantly.
+  useEffect(() => {
+    if (state.cachedId) router.push(`/r/${state.cachedId}`);
+  }, [state.cachedId, router]);
 
   const busy = state.status === "loading";
   const showInputs = state.status === "idle";
@@ -127,7 +136,7 @@ export function ReportExperience() {
         </div>
       )}
 
-      {state.status === "done" && state.mode && (
+      {state.status === "done" && state.mode && !state.cachedId && (
         <motion.div {...fade} className="flex flex-col gap-4">
           <div className="no-print flex items-center gap-2 text-sm font-semibold" style={{ color: firm.theme.green }}>
             <Check className="h-4 w-4" strokeWidth={3} /> Deck ready

@@ -20,6 +20,8 @@ export type ReportState = {
   thesis: DealThesis | null;
   generatedAt: string | null;
   reportId: string | null;
+  /** Set when the company already had a saved deck (navigate to it). */
+  cachedId: string | null;
 };
 
 const EMPTY: ReportState = {
@@ -37,6 +39,7 @@ const EMPTY: ReportState = {
   thesis: null,
   generatedAt: null,
   reportId: null,
+  cachedId: null,
 };
 
 /** Consume the NDJSON report stream and expose a progressively-built report. */
@@ -82,6 +85,8 @@ export function useReportStream() {
               return { ...s, phase: e.phase };
             case "meta":
               return { ...s, mode: e.mode, query: e.query, anchor: e.anchor ?? null };
+            case "cached":
+              return { ...s, phase: "Opening your saved deck", cachedId: e.reportId };
             case "market":
               return { ...s, marketContext: e.marketContext };
             case "segments":
