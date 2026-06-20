@@ -56,8 +56,8 @@ export function Deck({
           <ChevronLeft className="h-4 w-4" /> Back
         </button>
 
-        <div className="flex flex-1 items-center justify-center gap-3">
-          <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-1.5">
             {slides.map((s, idx) => (
               <button
                 key={s.id}

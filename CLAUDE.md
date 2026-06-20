@@ -93,7 +93,10 @@ over a semibold ink body (no dark-aubergine filled boxes, which clipped at the f
 frame is `overflow-hidden`, content-dense slides must budget vertical space: `signals-slide` drops the
 `intro` so its takeaway box fits. The deck action row (`report-deck.tsx`) is four **light color-tint**
 buttons (border-transparent fill + dark matching text): Regenerate blue (`#DBEAFE`), Copy share link
-yellow (`#FEF9C3`), Export PDF red (`#FEE2E2`), Download CSV green (`#DCFCE7`). `synthesis-slide` no
+yellow (`#FEF9C3`), Export PDF red (`#FEE2E2`), Download CSV green (`#DCFCE7`). On phones this row is a
+**2-up grid of full-width buttons** (`grid grid-cols-2` → `sm:flex sm:flex-wrap sm:justify-center`) so the
+labels never clip; the `Deck` nav controls' dot row also `flex-wrap`s so it can't crowd the Back/Next
+buttons on narrow screens. `synthesis-slide` no
 longer renders the **Sequencing** line (redundant; the field stays in the data model). Homepage CTA
 reads **"Generate report"**.
 
