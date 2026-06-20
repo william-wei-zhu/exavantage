@@ -39,7 +39,11 @@ Key files:
   `agentDiscoverEmerging`), `fetchCompanyIntel`, `fetchSiteContent`, and `searchMarketSize`
   (market pages, ranked credible-source-first via `CREDIBLE_MARKET_SOURCES`, tagged a tier).
 - `lib/gemini.ts` — **`gemini-3.5-flash`** (chosen over flash-lite for analysis quality), seed 7,
-  structured JSON; `UNTRUSTED_GUARD` prompt-injection defense.
+  structured JSON; `UNTRUSTED_GUARD` prompt-injection defense. **All Gemini calls run at
+  `temperature: 0`** (greedy decoding) so the same input yields the same deck run to run; the
+  `generateJSON` default is 0 and the two writing passes (`synthesizeLandscape`, deal thesis) were
+  dropped from 0.3/0.4 to 0. Residual run-to-run drift comes from **Exa's live web results**, not the
+  model (Exa is not seeded/cached).
 - `lib/pipeline.ts` — `streamReport(query, emit, {firmId})`. The two passes that drive the deck:
   `fetchMarketContext(sectorHint, excludeCompany)` (one cited market stat, evidence-only, searches
   the SECTOR and ignores the anchor's own revenue) and `analyzeOpportunity(...)` →
@@ -87,10 +91,11 @@ boxes (the cover's **The ask**, `signals-slide`'s **Why it matters**, `synthesis
 share **one light style**: `rounded-md` on `surface` with a `text-[10px]` uppercase **primary** kicker
 over a semibold ink body (no dark-aubergine filled boxes, which clipped at the frame edge). Because the
 frame is `overflow-hidden`, content-dense slides must budget vertical space: `signals-slide` drops the
-`intro` so its takeaway box fits. The deck action row (`report-deck.tsx`): **Download CSV is bright green
-(`#16A34A`)**; the other three (Regenerate / Copy share link / Export PDF) are consistent `outline` +
-`bg-muted`. `synthesis-slide` no longer renders the **Sequencing** line (redundant; the field stays in
-the data model). Homepage CTA reads **"Generate report"**.
+`intro` so its takeaway box fits. The deck action row (`report-deck.tsx`) is four **light color-tint**
+buttons (border-transparent fill + dark matching text): Regenerate blue (`#DBEAFE`), Copy share link
+yellow (`#FEF9C3`), Export PDF red (`#FEE2E2`), Download CSV green (`#DCFCE7`). `synthesis-slide` no
+longer renders the **Sequencing** line (redundant; the field stays in the data model). Homepage CTA
+reads **"Generate report"**.
 
 ## Loading + sharing
 

@@ -47,7 +47,9 @@ export async function generateJSON<T>(opts: {
           responseMimeType: "application/json",
           responseSchema: opts.schema,
           systemInstruction: (opts.system ?? DEFAULT_ANALYST_SYSTEM) + UNTRUSTED_GUARD,
-          temperature: opts.temperature ?? 0.4,
+          // Default to greedy decoding: with the fixed seed below, the same input
+          // yields the same JSON run to run. Callers can still opt into sampling.
+          temperature: opts.temperature ?? 0,
           seed: GEN_SEED,
         },
       }),

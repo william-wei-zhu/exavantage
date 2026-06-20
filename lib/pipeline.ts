@@ -323,7 +323,8 @@ ${candidateBlock(hits)}
 
 Domains flagged by Exa as recent/low-profile: ${[...emergingDomains].join(", ") || "(none)"} — lean toward emerging=true for these. Only output the JSON.`,
     schema: LANDSCAPE_SCHEMA,
-    temperature: 0.3,
+    // Greedy decoding (with the fixed seed) for run-to-run consistency.
+    temperature: 0,
   });
   return land;
 }
@@ -598,7 +599,8 @@ Only output the JSON.`,
     schema: DEAL_THESIS_SCHEMA,
     system:
       "You are a KKR private-equity deal-origination partner writing a sourcing recommendation for the investment committee. Be decisive, specific, and grounded only in the provided data. Never fabricate financial figures; frame the recommendation as analyst judgment. Do not use em-dashes.",
-    temperature: 0.4,
+    // Greedy decoding (with the fixed seed) for run-to-run consistency.
+    temperature: 0,
   });
 }
 
