@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Download, Link2, Check, RefreshCw } from "lucide-react";
+import { Download, Link2, Check, RefreshCw, FileSpreadsheet } from "lucide-react";
+import { reportToCsv, csvFilename } from "@/lib/csv";
 import { Deck, type Slide } from "@/components/deck/Deck";
 import type { PageInfo } from "./slides/bits";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,21 @@ function Toolbar({ firm, report, shareId }: { firm: Firm; report: Report; shareI
     track("pdf_exported", { firm: firm.id, mode: report.mode, query: report.query });
     if (typeof window !== "undefined") window.print();
   };
+  const onCsv = () => {
+    if (typeof window === "undefined") return;
+    track("csv_exported", { firm: firm.id, mode: report.mode, query: report.query });
+    // Prepend a BOM (U+FEFF) so Excel opens the UTF-8 file with correct encoding.
+    const bom = String.fromCharCode(0xfeff);
+    const blob = new Blob([bom + reportToCsv(report)], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = csvFilename(report);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
   const onRegenerate = () => {
     const q = report.query?.trim();
     if (!q || typeof window === "undefined") return;
@@ -124,6 +140,10 @@ function Toolbar({ firm, report, shareId }: { firm: Firm; report: Report; shareI
       <Button variant="outline" size="sm" onClick={onExport}>
         <Download className="h-4 w-4" />
         Export deck (PDF)
+      </Button>
+      <Button variant="outline" size="sm" onClick={onCsv}>
+        <FileSpreadsheet className="h-4 w-4" />
+        Download CSV
       </Button>
     </div>
   );

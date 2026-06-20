@@ -3,7 +3,9 @@
 A partner-grade PE deal-origination deck, generated from one input. Enter a **platform
 company**; Exa Vantage returns a **fixed-frame KKR-branded slide deck** that recommends a buy-and-build
 (roll-up): the add-on universe, tiered targets, value-creation, risks, and a concrete ask. Shareable
-by link, exportable to PDF. Live at **exavantage.com**. Powered by Exa + Gemini.
+by link, exportable to PDF, and downloadable as a CSV of the full company universe. The deck can be
+regenerated from scratch in place (overwrites the same `/r/[id]`). Live at **exavantage.com**.
+Powered by Exa + Gemini.
 
 UI/UX follows William's Web App Building Standard
 (https://github.com/william-wei-zhu/web-app-building-standard) with one sanctioned deviation: **the
