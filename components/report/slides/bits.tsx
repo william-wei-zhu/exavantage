@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import type { Company, Report, Segment } from "@/lib/types";
 import type { Firm, FirmTheme } from "@/lib/firms";
 import type { LensCopy } from "@/lib/lenses";
-import { faviconUrl, urlForDomain } from "@/lib/util";
+import { faviconUrl, urlForDomain } from "@/lib/format";
 import { ownershipSignal, visibleColumns } from "@/lib/metrics";
 
 export type SlideProps = { report: Report; firm: Firm; lens: LensCopy };

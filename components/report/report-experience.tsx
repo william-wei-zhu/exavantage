@@ -11,7 +11,7 @@ import { DEFAULT_FIRM_ID, firmById } from "@/lib/firms";
 import { lensFor } from "@/lib/lenses";
 import { useReportStream, toReport } from "@/lib/use-report-stream";
 import { useFadeUpProps } from "@/lib/motion";
-import { faviconUrl } from "@/lib/util";
+import { faviconUrl } from "@/lib/format";
 import { track } from "@/lib/analytics";
 
 // The single KKR Deal Origination desk: enter a platform company, get its
@@ -37,6 +37,8 @@ export function ReportExperience() {
       startedFromUrl.current = true;
       const replace = (sp.get("replace") || "").trim() || undefined;
       window.history.replaceState(null, "", "/");
+      // One-time mount sync from the regenerate URL; guarded by startedFromUrl above.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInput(q);
       track("report_regenerated", { firm: firm.id, query: q });
       run(q, firm.id, { fresh: true, replaceId: replace });

@@ -2,7 +2,7 @@ import type { PageInfo, SlideProps } from "./bits";
 import { Checklist, ConfidenceChip, HeaderBand, PRINT_EXACT, SourceChip } from "./bits";
 import { SlideFrame } from "./slide-frame";
 import { opportunitySize } from "@/lib/metrics";
-import { truncateWords } from "@/lib/util";
+import { truncateWords } from "@/lib/format";
 
 /** Why now: cited market size + the buildable prize + the catalysts driving consolidation. */
 export function WhyNowSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {

@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { db } from "./firestore";
-import { normalizeDomain, normalizeName } from "./util";
+import { normalizeDomain, normalizeName } from "./format";
 import type { Report } from "./types";
 
 const COLLECTION = "reports";

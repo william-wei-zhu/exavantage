@@ -2,7 +2,7 @@ import type { PageInfo, SlideProps } from "./bits";
 import { BarChart, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
 import { lensIndex, stageBucket, stageMix } from "@/lib/metrics";
-import { truncateWords } from "@/lib/util";
+import { truncateWords } from "@/lib/format";
 
 /** The fragmentation thesis: the argument (not duplicate stats) that this market
  *  is consolidatable. Lead with the claim, then prove it with the Fragmentation

@@ -3,7 +3,7 @@ import type { PageInfo, SlideProps } from "./bits";
 import { CompsTable, Favicon, TierBadge, evidenceLine } from "./bits";
 import { SlideFrame } from "./slide-frame";
 import { quantCoverage } from "@/lib/metrics";
-import { truncateWords } from "@/lib/util";
+import { truncateWords } from "@/lib/format";
 
 /** Rows of the full-screen comps table per appendix slide (kept small so each
  *  appendix page fits the fixed 16:9 canvas without overflowing). */

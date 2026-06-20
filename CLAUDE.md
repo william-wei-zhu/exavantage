@@ -7,11 +7,11 @@ by link, exportable to PDF, and downloadable as a CSV of the full company univer
 regenerated from scratch in place (overwrites the same `/r/[id]`). Live at **exavantage.com**.
 Powered by Exa + Gemini.
 
-UI/UX follows William's Web App Building Standard
+UI/UX follows the project's Web App Building Standard
 (https://github.com/william-wei-zhu/web-app-building-standard) with one sanctioned deviation: **the
 app shell clones the Exa brand** (real Exa logo/header/footer) while the **deck clones KKR's own
 deck** (aubergine `#53284F`, teal accents, ribbon motif, KKR logo). See the standard's "Cloning a
-target brand" clause. No left-border accent-bar callouts (user preference); takeaways are slide
+target brand" clause. No left-border accent-bar callouts; takeaways are slide
 headlines, not boxes.
 
 ## One desk: KKR, Private Equity, buy-and-build
@@ -150,8 +150,8 @@ Exa Agent: `EXA_AGENT_EMERGING`.
 
 ## Conventions
 
-- Next.js 16 has breaking changes — check `node_modules/next/dist/docs/` before editing route/config.
-- No em-dashes in copy. KKR is the intentional, approved exception to the "no company names" rule.
-- Never use left-border accent-bar callout boxes (user preference).
+- Next.js 16 has breaking changes; check `node_modules/next/dist/docs/` before editing route/config.
+- No em-dashes in copy. KKR is the intentional exception to the otherwise no-company-names rule.
+- No left-border accent-bar callout boxes; they read as unrefined in this layout.
 - Footer is intentionally minimal ("Built by William Zhu · Powered by Exa").
-- Commit and push every change; keep this file and docs in sync.
+- Keep this file and the docs in sync with code changes.

@@ -1,7 +1,7 @@
 import type { PageInfo, SlideProps } from "./bits";
 import { CompanyLogo, Ribbon, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords } from "@/lib/util";
+import { truncateWords } from "@/lib/format";
 
 /** The anchor: the platform candidate to build the roll-up around. */
 export function AnchorSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {

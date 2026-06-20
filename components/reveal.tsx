@@ -29,6 +29,8 @@ export function Reveal({
     const el = ref.current;
     if (!el) return;
     if (typeof IntersectionObserver === "undefined") {
+      // No IntersectionObserver (old/SSR-only env): show immediately rather than animate.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setVisible(true);
       return;
     }

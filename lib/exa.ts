@@ -1,5 +1,5 @@
 import Exa from "exa-js";
-import { domainOf, urlForDomain, withRetry } from "./util";
+import { domainOf, urlForDomain, withRetry } from "./format";
 
 let _exa: Exa | null = null;
 function exa(): Exa {

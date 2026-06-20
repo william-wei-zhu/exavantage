@@ -40,12 +40,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // TEMP: in-progress slide work has type errors that block `next build`.
-  // Skipping type-check lets the (independent, already-correct) header change
-  // ship to production. Remove once the slide files type-check again.
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

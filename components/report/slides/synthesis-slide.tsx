@@ -1,7 +1,7 @@
 import type { PageInfo, SlideProps } from "./bits";
 import { CompanyLogo, HeaderBand, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords } from "@/lib/util";
+import { truncateWords } from "@/lib/format";
 
 /** The play: first calls, sequencing, risks, and the ask. Final slide. */
 export function SynthesisSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {

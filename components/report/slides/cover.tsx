@@ -2,7 +2,7 @@ import type { PageInfo, SlideProps } from "./bits";
 import { PRINT_EXACT, SLIDE_FRAME_CLASS, CompanyLogo, ConfidenceChip, ConvictionBadge, Ribbon, SourceChip, StatBox } from "./bits";
 import { SlideFooter } from "./slide-frame";
 import { reportSubject } from "@/lib/lenses";
-import { truncateWords } from "@/lib/util";
+import { truncateWords } from "@/lib/format";
 import { exaEdge, lensIndex } from "@/lib/metrics";
 import { FirmLogo } from "@/components/report/firm-logo";
 

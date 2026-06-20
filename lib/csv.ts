@@ -1,6 +1,6 @@
 import type { Report } from "./types";
 import { ownershipSignal } from "./metrics";
-import { urlForDomain } from "./util";
+import { urlForDomain } from "./format";
 
 /** CSV-escape one cell: collapse whitespace/newlines to single spaces (so every
  *  cell stays one tidy line), then wrap in quotes and double any internal quotes. */

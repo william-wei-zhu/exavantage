@@ -1,7 +1,7 @@
 import type { PageInfo, SlideProps } from "./bits";
 import { PRINT_EXACT, Ribbon } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords } from "@/lib/util";
+import { truncateWords } from "@/lib/format";
 
 /** Value creation: how the roll-up actually makes money, specific to this platform. */
 export function ValueSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {

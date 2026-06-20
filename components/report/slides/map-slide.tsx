@@ -1,7 +1,7 @@
 import type { PageInfo, SlideProps } from "./bits";
 import { Favicon, groupBySegment, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords } from "@/lib/util";
+import { truncateWords } from "@/lib/format";
 
 /** Where to win: sub-segments ranked by consolidation attractiveness, beachhead named. */
 export function MapSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {

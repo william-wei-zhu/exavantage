@@ -11,7 +11,7 @@ import {
   type SearchHit,
 } from "./exa";
 import { generateJSON, Type, type Schema } from "./gemini";
-import { mapLimit, brandNameFromDomain, domainOf, isValidDomain, normalizeDomain } from "./util";
+import { mapLimit, brandNameFromDomain, isValidDomain, normalizeDomain } from "./format";
 import { findExistingReport, saveReport } from "./store";
 import type { Company, DealThesis, MarketContext, Report, ReportMode, Segment, StreamEvent } from "./types";
 

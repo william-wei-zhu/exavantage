@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type, type Schema } from "@google/genai";
-import { withRetry } from "./util";
+import { withRetry } from "./format";
 
 // Gemini 3.5 Flash: higher-quality reasoning for the deck's strategic analysis
 // (deliberately chosen over flash-lite, since deck quality matters more than the

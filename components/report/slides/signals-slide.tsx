@@ -1,7 +1,7 @@
 import type { PageInfo, SlideProps } from "./bits";
 import { Favicon, HeaderBand, PRINT_EXACT } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords } from "@/lib/util";
+import { truncateWords } from "@/lib/format";
 
 /** The Exa Vantage: proprietary, off-database sourcing. The names PitchBook and
  *  Sourcescrub never indexed mean fewer bidders, off-auction conversations, and
