@@ -115,8 +115,10 @@ export default function AboutPage() {
             under-the-radar names that even similarity misses, deduped against the set so far.
           </Act>
 
-          <Act num="04" title="Keep the real matches, pull the facts." tag="Gemini relevance gate drops name-collisions · per-company facts + a cited market stat from Exa" art={<FilterArt />} flip>
-            An AI gate removes look-alikes that only share a name, then pulls each company&apos;s size,
+          <Act num="04" title="Keep only what's real and buyable." tag="Gemini relevance gate drops name-collisions · independence gate drops parent-owned sub-brands · per-company facts + a cited market stat from Exa" art={<FilterArt />} flip>
+            An AI relevance gate removes look-alikes that only share a name, and an independence gate drops
+            companies already owned by a larger parent (a sub-brand of a national chain is not a deal you can
+            do on its own). What survives is real and acquirable, so it then pulls each company&apos;s size,
             location, and ownership signals, plus one market-size number cited to a real source.
           </Act>
 
@@ -144,6 +146,7 @@ export default function AboutPage() {
               <p className="section-label" style={{ color: AUB }}>Notes for engineers</p>
               <ul className="mt-4 space-y-2.5 font-mono text-xs leading-relaxed text-muted-foreground">
                 <li>· Discovery runs two complementary Exa calls: findSimilar (off a domain) builds the known universe, and the Exa Agent API (multi-step research off the thesis) adds the emerging long tail, deduped against it.</li>
+                <li>· The independence gate runs twice: a Gemini pass drops known sub-brands up front, then per-company Exa text is re-checked for a parent/owner, dropping any that slipped through before they reach the deck.</li>
                 <li>· The market stat is sector-scoped and Exa-cited (a single company&apos;s ARR is rejected) with a confidence label.</li>
                 <li>· Quant is evidence-only and labeled estimated, blank when unknown. No invented revenue, multiples, or market shares.</li>
                 <li>· The deck streams behind a gated build view and reveals on done, so you never see half-built numbers.</li>
