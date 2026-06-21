@@ -13,9 +13,24 @@ Live at **[exavantage.com](https://exavantage.com)**.
 ## One desk, done well
 
 A single **KKR Private Equity** desk focused on **buy-and-build add-on sourcing**. You give it a
-platform company; `findSimilar` plus a relevance gate surface the proprietary, often founder-owned
-long tail that PitchBook and Sourcescrub miss, and a strategic-analysis pass turns that set into a
-recommendation a partner can act on.
+platform company; Exa surfaces the proprietary, often founder-owned long tail that PitchBook and
+Sourcescrub miss (two complementary discovery calls, below), a relevance gate keeps the genuine
+matches, and a strategic-analysis pass turns that set into a recommendation a partner can act on.
+
+## Two-pass discovery (Exa)
+
+Targets come from two Exa calls that, by design, cover each other's blind spots:
+
+- **`findSimilar`** (always on) takes the platform company's **domain** and returns established
+  lookalikes by meaning. This is the backbone of the universe.
+- **Exa Agent** (`agent.runs.create`, gated by `EXA_AGENT_EMERGING`, on in production) takes the
+  restated **thesis** and runs **multi-step research** to surface recently founded, under-the-radar
+  names that no database lists yet. Its hits are deduped against the findSimilar set and capped, so
+  the Agent only ever adds the off-database long tail. On any miss it falls back to a fast,
+  freshness-tuned `search`.
+
+They are complementary, not substitutes: findSimilar is strong on the near field around the seed; the
+Agent reaches the fresh, low-profile names embeddings haven't caught up to yet.
 
 ## The 9 slides
 
@@ -38,7 +53,9 @@ deck's page count scales with the universe.
 
 Resolve the input → discover with Exa `findSimilar` + neural search → a relevance gate drops
 name-collisions → an independence gate drops companies already owned by a larger parent (sub-brands
-of a major chain aren't acquirable) → an Exa Agent pass surfaces emerging names → Gemini clusters and
+of a major chain aren't acquirable) → an **Exa Agent** deep-research pass (multi-step, distinct from
+the single-shot findSimilar) surfaces emerging names and dedupes them against the set so far →
+Gemini clusters and
 writes tear sheets → per-company Exa search pulls facts (and any that turn out to be owned are
 dropped here too) → one batched Gemini pass extracts quant (estimated, blank when unknown) → Exa
 pulls a cited market-size stat for the sector → one Gemini pass writes the strategic deal thesis. Results stream behind a build-progress view, save to Firestore, and reveal as a

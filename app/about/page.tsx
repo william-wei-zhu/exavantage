@@ -107,10 +107,12 @@ export default function AboutPage() {
             analysts spend weeks searching by hand.
           </Act>
 
-          <Act num="03" title="Exa finds them by what they do." tag="Exa findSimilar + neural search over the live web" art={<ExaArt />} emphasize>
+          <Act num="03" title="Exa finds them by what they do." tag="Exa findSimilar + neural search, then an Exa Agent deep-research pass over the live web" art={<ExaArt />} emphasize>
             Give Exa one company and it surfaces the whole hidden field by meaning, the off-database names
             included. For engineers: it is <strong>findSimilar for acquisition targets</strong>, semantic
-            similarity over the live web instead of a curated list.
+            similarity over the live web instead of a curated list. Then a second, complementary move, the{" "}
+            <strong>Exa Agent</strong>, runs multi-step research from the thesis to pull in the freshest,
+            under-the-radar names that even similarity misses, deduped against the set so far.
           </Act>
 
           <Act num="04" title="Keep the real matches, pull the facts." tag="Gemini relevance gate drops name-collisions · per-company facts + a cited market stat from Exa" art={<FilterArt />} flip>
@@ -141,7 +143,7 @@ export default function AboutPage() {
             <div className="mt-10 border-t border-border pt-6">
               <p className="section-label" style={{ color: AUB }}>Notes for engineers</p>
               <ul className="mt-4 space-y-2.5 font-mono text-xs leading-relaxed text-muted-foreground">
-                <li>· findSimilar over the live web finds the off-database long tail a curated database can&apos;t.</li>
+                <li>· Discovery runs two complementary Exa calls: findSimilar (off a domain) builds the known universe, and the Exa Agent API (multi-step research off the thesis) adds the emerging long tail, deduped against it.</li>
                 <li>· The market stat is sector-scoped and Exa-cited (a single company&apos;s ARR is rejected) with a confidence label.</li>
                 <li>· Quant is evidence-only and labeled estimated, blank when unknown. No invented revenue, multiples, or market shares.</li>
                 <li>· The deck streams behind a gated build view and reveals on done, so you never see half-built numbers.</li>
