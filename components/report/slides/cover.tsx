@@ -43,7 +43,7 @@ export function CoverSlide({ report, firm, lens, full, page }: SlideProps & { pa
         <div className="mt-5">
           <div className="grid items-start gap-4 sm:grid-cols-3">
             <StatBox value={String(report.companies.length)} label="Qualified targets" caption="small businesses to consolidate" color={t.secondary} />
-            <StatBox value={String(edge.count)} label="Off-database finds" caption="not in PitchBook / Sourcescrub" color={t.accent} />
+            <StatBox value={String(edge.count)} label="Off-database finds" caption="likely off PitchBook / Sourcescrub" color={t.accent} />
             {mc ? (
               <div className="flex flex-col">
                 <div className="flex min-h-[80px] flex-col justify-center rounded-md px-4 py-3 text-white" style={{ background: t.primary, ...PRINT_EXACT }}>
