@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ExaMark } from "@/components/exa-logo";
+import { GithubMark } from "@/components/github-mark";
 
 /**
  * Minimal footer: just attribution and the Exa credit, plus the two required
@@ -29,10 +30,22 @@ export function SiteFooter() {
             <ExaMark className="h-4 w-auto" />
           </a>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-4">
           <Link href="/about" className="transition-colors hover:text-foreground">
             How it works
           </Link>
+          <Link href="/architecture" className="transition-colors hover:text-foreground">
+            Architecture
+          </Link>
+          <a
+            href="https://github.com/william-wei-zhu/exavantage"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-foreground"
+          >
+            <GithubMark className="h-4 w-4" />
+            Source
+          </a>
           <Link href="/privacy" className="transition-colors hover:text-foreground">
             Privacy
           </Link>

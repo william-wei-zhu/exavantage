@@ -8,6 +8,8 @@ import type { NextConfig } from "next";
 // - Next.js + Tailwind inject inline <script>/<style>, so 'unsafe-inline' is
 //   required; the app renders no user-supplied HTML (React/next-og escape all
 //   output), so CSP here is defense-in-depth rather than the primary XSS guard.
+// - The About page's click-to-play demo embeds a YouTube iframe (frame-src);
+//   its poster image is covered by img-src https:.
 const POSTHOG = "https://us.i.posthog.com https://us-assets.i.posthog.com";
 const csp = [
   "default-src 'self'",
@@ -17,6 +19,7 @@ const csp = [
   "font-src 'self' data:",
   `connect-src 'self' ${POSTHOG}`,
   "worker-src 'self' blob:",
+  "frame-src 'self' https://www.youtube.com",
   "frame-ancestors 'self'",
   "base-uri 'self'",
   "form-action 'self'",

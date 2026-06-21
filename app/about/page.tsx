@@ -6,6 +6,7 @@ import { ExaHeader } from "@/components/exa-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Reveal } from "@/components/reveal";
 import { MiniPipeline, RollupArt, HiddenArt, ExaArt, FilterArt, DeckArt } from "@/components/docs-art";
+import { YoutubeFacade } from "@/components/youtube-facade";
 
 export const metadata: Metadata = {
   title: "How it works",
@@ -80,7 +81,10 @@ export default function AboutPage() {
             <h1 className="mt-4 max-w-2xl font-heading text-5xl font-bold leading-[1.0] tracking-tight sm:text-7xl">
               How Exa finds the targets and makes the case.
             </h1>
-            <p className="mt-6 max-w-xl text-xl leading-relaxed text-foreground/85">
+            <div className="mt-8">
+              <YoutubeFacade id="ogUN0-XxAlI" title="Exa Vantage 60-second demo" />
+            </div>
+            <p className="mt-8 max-w-xl text-xl leading-relaxed text-foreground/85">
               You enter one company. About 90 seconds later you have a deck of the smaller companies
               worth acquiring around it, ranked and reasoned. Here is the whole journey, in five steps.
             </p>
@@ -151,6 +155,22 @@ export default function AboutPage() {
                 <li>· Quant is evidence-only and labeled estimated, blank when unknown. No invented revenue, multiples, or market shares.</li>
                 <li>· The deck streams behind a gated build view and reveals on done, so you never see half-built numbers.</li>
               </ul>
+            </div>
+
+            <div className="mt-10 border-t border-border pt-8">
+              <h3 className="font-heading text-2xl font-bold leading-tight">Want the engineering deep dive?</h3>
+              <p className="mt-2 max-w-xl text-foreground/85">
+                The full backend, every Exa and Gemini call in order, the streaming protocol, and the
+                trust layer, is laid out on its own page.
+              </p>
+              <Link
+                href="/architecture"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                style={{ background: AUB }}
+              >
+                Read the full architecture
+                <span aria-hidden>&rarr;</span>
+              </Link>
             </div>
 
             <p className="section-label mt-10 border-t border-border pt-6 text-muted-foreground">

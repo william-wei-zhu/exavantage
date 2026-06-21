@@ -8,7 +8,8 @@ that recommends a buy-and-build (roll-up): a sized opportunity, the tiered add-o
 value-creation thesis, the risks, and a concrete ask. Shareable by link, exportable to PDF, and
 downloadable as a CSV of the full company universe.
 
-Live at **[exavantage.com](https://exavantage.com)**.
+Live at **[exavantage.com](https://exavantage.com)**. ▶ **[60-second demo](https://youtu.be/ogUN0-XxAlI)** ·
+**[Architecture deep dive](https://exavantage.com/architecture)**.
 
 ## One desk, done well
 
@@ -49,17 +50,62 @@ Each slide leads with an action-title conclusion (the takeaway), MBB/PE style:
 Plus a **Full Universe** appendix: the entire discovered company set in a paginated table, so the
 deck's page count scales with the universe.
 
-## How it works
+## Backend architecture (step by step)
 
-Resolve the input → discover with Exa `findSimilar` + neural search → a relevance gate drops
-name-collisions → an independence gate drops companies already owned by a larger parent (sub-brands
-of a major chain aren't acquirable) → an **Exa Agent** deep-research pass (multi-step, distinct from
-the single-shot findSimilar) surfaces emerging names and dedupes them against the set so far →
-Gemini clusters and
-writes tear sheets → per-company Exa search pulls facts (and any that turn out to be owned are
-dropped here too) → one batched Gemini pass extracts quant (estimated, blank when unknown) → Exa
-pulls a cited market-size stat for the sector → one Gemini pass writes the strategic deal thesis. Results stream behind a build-progress view, save to Firestore, and reveal as a
-shareable `/r/[id]` deck.
+One streaming request handler (`app/api/report/stream/route.ts` → `streamReport` in
+`lib/pipeline.ts`) drives the whole pipeline and emits NDJSON as it goes:
+
+1. **Ingest.** `GET /api/report/stream` validates the query, enforces a per-IP rate limit (4/min,
+   40/day, fail-closed) and a global budget kill switch, then opens an NDJSON stream.
+2. **Route.** A Gemini pass classifies company vs sector and resolves the official name + domain
+   (Exa search fallback). A Firestore cache lookup short-circuits known inputs. Emits `meta`.
+3. **Discover (two-pass).** `findSimilar` off the seed domain and a semantic `search` run in parallel
+   and are merged + deduped (see Two-pass discovery above). The market-size search starts here too, to
+   overlap its latency.
+4. **Gate.** A relevance gate drops name-collisions; an independence gate (layer 1) drops parent-owned
+   sub-brands and the anchor's own subsidiaries. Both fall back to keeping the set if they would
+   over-filter.
+5. **Emerging.** The Exa Agent (or a freshness-tuned search) adds the off-database long tail, deduped
+   and capped.
+6. **Cluster.** One Gemini pass clusters the set into 3-6 segments and writes per-company tear sheets,
+   evidence-only. Emits `segments`.
+7. **Enrich.** Per-company Exa search pulls facts + a recent signal (bounded concurrency); one batched
+   Gemini pass extracts quant and a parent-owner signal. Companies with a detected parent are dropped
+   here (independence layer 2) before streaming. Emits each `company`.
+8. **Position.** Exa + Gemini extract one cited market stat (sector-scoped, source URL must match a
+   retrieved page, or omitted); one Gemini pass writes the `DealThesis`. Emits `market`, `analysis`,
+   `summary`.
+9. **Persist.** Saved to Firestore with cache keys (Regenerate overwrites the same `/r/[id]`). Emits
+   `done`. The deck reveals from the saved `/r/[id]`.
+
+Full walkthrough with diagrams: **[exavantage.com/architecture](https://exavantage.com/architecture)**.
+
+### Streaming protocol
+
+NDJSON, one JSON object per line. Event types in emit order: `meta`, `cached`, `segments`, `company`
+(one each), `emerging`, `market`, `analysis`, `summary`, `done`, plus `progress` / `error` throughout.
+The client (`lib/use-report-stream.ts`) applies each event as it arrives, so the deck assembles live
+behind a build-progress view.
+
+### Determinism & honesty
+
+Every Gemini call runs at `temperature: 0` with a fixed seed, so the same input yields the same deck;
+only Exa's live web results vary. All web text is wrapped in `<UNTRUSTED_CONTENT>` with a
+prompt-injection guard. No invented financials: quant is evidence-only and blank when unknown, the
+market stat is cited or omitted, the fragmentation index is capped, and every company links to its
+live site.
+
+### Guardrails
+
+Each build fans out to ~15-25 paid calls, so the route is per-IP rate limited (`lib/ratelimit.ts`) and
+sits behind a global hourly/daily budget kill switch (`lib/budget.ts`): Upstash when configured, an
+in-memory fallback otherwise.
+
+### Persistence & caching
+
+`lib/store.ts` + `lib/firestore.ts` save each report under cache keys (normalized name + domain) so
+repeat inputs return instantly. Firestore is optional and degrades to a non-shareable deck when
+unconfigured.
 
 ## Stack
 

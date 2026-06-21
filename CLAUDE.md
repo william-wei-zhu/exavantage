@@ -54,6 +54,15 @@ Key files:
   comps columns), stage mix, exa-edge count. Pure, no fabrication.
 - `lib/store.ts` + `lib/firestore.ts` — persist/load reports for shareable `/r/[id]`.
 
+**Streaming protocol** (`StreamEvent` in `lib/types.ts`): NDJSON, one JSON object per line. Emit
+order: `meta` → `segments` → `company` (one per surviving company) → `emerging` → `market` →
+`analysis` → `summary` → `done`; plus `cached` (cache hit, then end), and `progress` / `error`
+throughout. The route (`app/api/report/stream/route.ts`) is the expensive one: per-IP rate limit
+(4/min, 40/day, fail-closed via `lib/ratelimit.ts`) + global budget kill switch (`lib/budget.ts`),
+then a `ReadableStream`. Client consumes via `lib/use-report-stream.ts`; progress bar in
+`components/building-deck.tsx`. The full step-by-step lifecycle (with diagrams) lives on the
+**`/architecture`** page, which mirrors this flow, so keep the two in sync.
+
 ## The deal thesis (`DealThesis` in `lib/types.ts`)
 
 One Gemini pass turns the discovered set into a partner-grade recommendation, persisted on the
@@ -150,7 +159,17 @@ plays once and is static under `prefers-reduced-motion`. **`app/about/page.tsx` 
 `/docs`): scroll-revealed (`components/reveal.tsx` + the `.reveal/.draw/.fade-art/.sweep/.press/
 .pipe-line` motion in `globals.css`), hand-drawn animated SVG line-art in aubergine/teal
 (`components/docs-art.tsx`), explaining the PE roll-up job in plain English + precise tech names
-("findSimilar for acquisition targets"). Reduced-motion shows everything statically.
+("findSimilar for acquisition targets"). Reduced-motion shows everything statically. The About page also has a **"See it in action"** section
+(a 60s YouTube demo via `components/youtube-facade.tsx`, a click-to-play facade that loads the iframe
+only on click) and a CTA to the architecture page.
+
+**`app/architecture/page.tsx` is the engineering deep dive** (linked from the About page CTA + the
+footer): a hero stat strip + GitHub "View source" chip, the **vertical dual-rail pipeline diagram**
+(`components/architecture-diagram.tsx`: clean precise HTML/CSS, call rail ▸ stage ▸ streamed event),
+the six-phase stage-by-stage walkthrough, two SVG mini-diagrams (`components/architecture-art.tsx`:
+`TwoPassArt`, `IndependenceFunnelArt`), a cross-cutting "trust layer" card grid, and the streaming
+protocol table. Keep it in sync with `streamReport`'s actual flow. `components/site-footer.tsx`
+carries the global **Architecture** + **GitHub Source** links (repo: `william-wei-zhu/exavantage`).
 
 ## Environment
 
