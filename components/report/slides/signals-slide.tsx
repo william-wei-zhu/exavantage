@@ -19,7 +19,7 @@ export function SignalsSlide({ report, firm, lens, full, page }: SlideProps & { 
       kicker={lens.signalsTitle}
       title={thesis?.takeaways.edge ?? lens.signalsTitle}
       page={page}
-      note="Off-database is inferred from low public-database coverage; these are the proprietary names Exa surfaced."
+      note="Off-database is inferred, not a database lookup: names surfaced via a recency-tuned Exa search, so likely not yet catalogued."
     >
       <HeaderBand title="Off-database finds" t={t} right="proprietary sourcing · off-auction" />
       <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2">
