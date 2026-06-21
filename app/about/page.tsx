@@ -109,7 +109,7 @@ export default function AboutPage() {
 
           <Act num="03" title="Exa finds them by what they do." tag="Exa findSimilar + neural search, then an Exa Agent deep-research pass over the live web" art={<ExaArt />} emphasize>
             Give Exa one company and it surfaces the whole hidden field by meaning, the off-database names
-            included. For engineers: it is <strong>findSimilar for acquisition targets</strong>, semantic
+            included. It uses <strong>findSimilar for acquisition targets</strong>, semantic
             similarity over the live web instead of a curated list. Then a second, complementary move, the{" "}
             <strong>Exa Agent</strong>, runs multi-step research from the thesis to pull in the freshest,
             under-the-radar names that even similarity misses, deduped against the set so far.
