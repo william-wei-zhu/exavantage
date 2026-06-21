@@ -56,7 +56,7 @@ export function QuantSlide({ report, firm, lens, full, page }: SlideProps & { pa
               <p className="mt-2 line-clamp-2 max-sm:line-clamp-none text-[14px] leading-snug" style={{ color: `${t.ink}d0` }}>
                 <span className="font-semibold" style={{ color: t.primary }}>Why call: </span>{clip(full, tg.whyCall, 18)}
               </p>
-              <p className="mt-1.5 line-clamp-1 max-sm:line-clamp-none text-[13px] leading-snug" style={{ color: `${t.ink}a0` }}>
+              <p className="mt-1.5 line-clamp-2 max-sm:line-clamp-none text-[13px] leading-snug" style={{ color: `${t.ink}a0` }}>
                 <span className="font-semibold">Angle: </span>{clip(full, tg.angle, 9)}
               </p>
               <p className="mt-1.5 truncate max-sm:whitespace-normal max-sm:overflow-visible text-[11.5px] font-medium" style={{ color: `${t.ink}80` }}>Evidence: {evidenceLine(c)}</p>

@@ -31,7 +31,7 @@ export function SynthesisSlide({ report, firm, lens, full, page }: SlideProps & 
                   {domain && <CompanyLogo domain={domain} size={30} />}
                   <div className="min-w-0">
                     <span className="text-[14px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
-                    <p className="line-clamp-1 max-sm:line-clamp-none text-[12.5px] leading-snug" style={{ color: `${t.ink}b0` }}>{clip(full, c.why, 10)}</p>
+                    <p className="line-clamp-2 max-sm:line-clamp-none text-[12.5px] leading-snug" style={{ color: `${t.ink}b0` }}>{clip(full, c.why, 10)}</p>
                   </div>
                 </li>
               );
