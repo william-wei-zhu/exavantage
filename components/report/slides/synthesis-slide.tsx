@@ -1,10 +1,9 @@
 import type { PageInfo, SlideProps } from "./bits";
-import { CompanyLogo, HeaderBand, PRINT_EXACT } from "./bits";
+import { CompanyLogo, HeaderBand, PRINT_EXACT, clip } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords } from "@/lib/format";
 
 /** The play: first calls, sequencing, risks, and the ask. Final slide. */
-export function SynthesisSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
+export function SynthesisSlide({ report, firm, lens, full, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
   const thesis = report.thesis;
   const calls = (thesis?.firstCalls ?? []).slice(0, 3);
@@ -32,7 +31,7 @@ export function SynthesisSlide({ report, firm, lens, page }: SlideProps & { page
                   {domain && <CompanyLogo domain={domain} size={30} />}
                   <div className="min-w-0">
                     <span className="text-[14px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
-                    <p className="line-clamp-1 text-[12.5px] leading-snug" style={{ color: `${t.ink}b0` }}>{truncateWords(c.why, 10)}</p>
+                    <p className="line-clamp-1 max-sm:line-clamp-none text-[12.5px] leading-snug" style={{ color: `${t.ink}b0` }}>{clip(full, c.why, 10)}</p>
                   </div>
                 </li>
               );
@@ -45,7 +44,7 @@ export function SynthesisSlide({ report, firm, lens, page }: SlideProps & { page
             {risks.map((r, i) => (
               <li key={i} className="flex gap-2.5 text-[15px] leading-snug" style={{ color: `${t.ink}c8` }}>
                 <span className="mt-0.5 shrink-0" style={{ color: t.gold }}>&#9650;</span>
-                <span className="line-clamp-3">{truncateWords(r, 40)}</span>
+                <span className="line-clamp-3 max-sm:line-clamp-none">{clip(full, r, 40)}</span>
               </li>
             ))}
           </ul>
@@ -55,7 +54,7 @@ export function SynthesisSlide({ report, firm, lens, page }: SlideProps & { page
       {thesis?.ask && (
         <div className="mt-5 rounded-md p-4" style={{ background: t.surface, ...PRINT_EXACT }}>
           <span className="text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: t.primary }}>The ask</span>
-          <p className="mt-1 line-clamp-3 text-[15px] font-semibold leading-snug" style={{ color: `${t.ink}d8` }}>{thesis.ask}</p>
+          <p className="mt-1 line-clamp-3 max-sm:line-clamp-none text-[15px] font-semibold leading-snug" style={{ color: `${t.ink}d8` }}>{thesis.ask}</p>
         </div>
       )}
     </SlideFrame>

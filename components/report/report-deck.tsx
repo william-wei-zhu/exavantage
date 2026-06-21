@@ -19,6 +19,7 @@ import type { Firm } from "@/lib/firms";
 import type { Report } from "@/lib/types";
 import { lensFor } from "@/lib/lenses";
 import { track } from "@/lib/analytics";
+import { useIsMobile } from "./use-is-mobile";
 
 /**
  * The deliverable, as a KKR-branded slide deck. Nine insight-first slides, each
@@ -35,7 +36,10 @@ export function ReportDeck({
   shareId?: string | null;
 }) {
   const lens = lensFor(firm.lens);
-  const props = { report, firm, lens };
+  // On phones the fixed 16:9 frame relaxes to natural height; `full` tells slides to
+  // drop their word caps and line clamps so nothing is truncated.
+  const full = useIsMobile();
+  const props = { report, firm, lens, full };
 
   // The full add-on universe is paginated into appendix table slides so every page
   // stays a uniform fixed-size slide; they sit right after the Tier-1 targets slide.

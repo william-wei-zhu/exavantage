@@ -1,10 +1,9 @@
 import type { PageInfo, SlideProps } from "./bits";
-import { PRINT_EXACT, Ribbon } from "./bits";
+import { PRINT_EXACT, Ribbon, clip } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords } from "@/lib/format";
 
 /** Value creation: how the roll-up actually makes money, specific to this platform. */
-export function ValueSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
+export function ValueSlide({ report, firm, lens, full, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
   const thesis = report.thesis;
   const levers = thesis?.valueLevers ?? [];
@@ -28,7 +27,7 @@ export function ValueSlide({ report, firm, lens, page }: SlideProps & { page?: P
               return (
                 <div key={i} className="rounded-xl border p-4" style={{ background: t.paper, borderColor: `${t.ink}14`, ...PRINT_EXACT }}>
                   <div className="flex h-9 w-9 items-center justify-center rounded-full text-[15px] font-bold text-white" style={{ background: c, ...PRINT_EXACT }}>{i + 1}</div>
-                  <p className="mt-3 line-clamp-4 text-[15px] leading-relaxed" style={{ color: `${t.ink}d0` }}>{truncateWords(l, 30)}</p>
+                  <p className="mt-3 line-clamp-4 max-sm:line-clamp-none text-[15px] leading-relaxed" style={{ color: `${t.ink}d0` }}>{clip(full, l, 30)}</p>
                 </div>
               );
             })

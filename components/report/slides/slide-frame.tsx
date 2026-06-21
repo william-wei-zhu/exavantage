@@ -56,7 +56,7 @@ export function SlideFrame({
         {intro && (
           <p className="mt-3 max-w-2xl text-[13.5px] leading-snug" style={{ color: `${t.ink}99` }}>{intro}</p>
         )}
-        <div className="mt-4 min-h-0 flex-1 overflow-hidden">{children}</div>
+        <div className="mt-4 min-h-0 flex-1 overflow-hidden max-sm:overflow-visible">{children}</div>
       </div>
 
       <SlideFooter firm={firm} lens={lens} page={page} note={note} />

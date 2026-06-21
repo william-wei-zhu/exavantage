@@ -2,10 +2,19 @@ import { ArrowUpRight, Check } from "lucide-react";
 import type { Company, Report, Segment } from "@/lib/types";
 import type { Firm, FirmTheme } from "@/lib/firms";
 import type { LensCopy } from "@/lib/lenses";
-import { faviconUrl, urlForDomain } from "@/lib/format";
+import { faviconUrl, truncateWords, urlForDomain } from "@/lib/format";
 import { ownershipSignal, visibleColumns } from "@/lib/metrics";
 
-export type SlideProps = { report: Report; firm: Firm; lens: LensCopy };
+/** `full` is set on phone-width viewports so slides render their complete text. */
+export type SlideProps = { report: Report; firm: Firm; lens: LensCopy; full?: boolean };
+
+/**
+ * Word-cap a string for the fixed desktop frame, but pass it through untouched when
+ * `full` (mobile), where the slide grows to fit and nothing should be truncated.
+ */
+export function clip(full: boolean | undefined, text: string | undefined, words: number): string {
+  return full ? (text ?? "").trim() : truncateWords(text, words);
+}
 
 /** Position of a slide in the deck, for the KKR-style footer page number. */
 export type PageInfo = { n: number; total: number };
@@ -23,7 +32,7 @@ export const PRINT_EXACT: React.CSSProperties = {
  * ring frames the slide. Phones fall back to natural height (fonts are fixed-px).
  */
 export const SLIDE_FRAME_CLASS =
-  "relative flex aspect-[16/9] w-full flex-col overflow-hidden rounded-2xl ring-2 ring-[#53284F]/35 max-sm:aspect-auto max-sm:min-h-[560px]";
+  "relative flex aspect-[16/9] w-full flex-col overflow-hidden rounded-2xl ring-2 ring-[#53284F]/35 max-sm:aspect-auto max-sm:min-h-[560px] max-sm:overflow-visible";
 
 export function groupBySegment(report: Report): { segment: Segment; companies: Company[] }[] {
   const byDomain = new Map(report.companies.map((c) => [c.domain, c]));
@@ -183,7 +192,7 @@ export function Checklist({ items, t }: { items: string[]; t: FirmTheme }) {
           >
             <Check className="h-3 w-3 text-white" strokeWidth={3} />
           </span>
-          <span className="line-clamp-2" style={{ color: `${t.ink}d0` }}>{it}</span>
+          <span className="line-clamp-2 max-sm:line-clamp-none" style={{ color: `${t.ink}d0` }}>{it}</span>
         </li>
       ))}
     </ul>
@@ -264,7 +273,7 @@ export function BarChart({ data, accent }: { data: { label: string; count: numbe
     <div className="flex flex-col gap-2">
       {data.map((d) => (
         <div key={d.label} className="flex items-center gap-3">
-          <div className="w-28 shrink-0 truncate text-[12.5px] font-medium" title={d.label}>
+          <div className="w-28 shrink-0 truncate text-[12.5px] font-medium max-sm:whitespace-normal max-sm:overflow-visible" title={d.label}>
             {d.label}
           </div>
           <div className="h-5 flex-1 rounded-sm" style={{ background: `${accent}14`, ...PRINT_EXACT }}>

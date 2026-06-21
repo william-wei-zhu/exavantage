@@ -1,11 +1,10 @@
 import type { PageInfo, SlideProps } from "./bits";
-import { Checklist, ConfidenceChip, HeaderBand, PRINT_EXACT, SourceChip } from "./bits";
+import { Checklist, ConfidenceChip, HeaderBand, PRINT_EXACT, SourceChip, clip } from "./bits";
 import { SlideFrame } from "./slide-frame";
 import { opportunitySize } from "@/lib/metrics";
-import { truncateWords } from "@/lib/format";
 
 /** Why now: cited market size + the buildable prize + the catalysts driving consolidation. */
-export function WhyNowSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
+export function WhyNowSlide({ report, firm, lens, full, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
   const thesis = report.thesis;
   const mc = report.marketContext;
@@ -52,7 +51,7 @@ export function WhyNowSlide({ report, firm, lens, page }: SlideProps & { page?: 
       <div className="mt-4">
         <HeaderBand title="Tailwinds driving consolidation" t={t} />
         <div className="mt-3">
-          {whyNow.length ? <Checklist items={whyNow.slice(0, 3).map((w) => truncateWords(w, 14))} t={t} /> : <p className="text-[14px]" style={{ color: `${t.ink}80` }}>Analysis pending.</p>}
+          {whyNow.length ? <Checklist items={whyNow.slice(0, 3).map((w) => clip(full, w, 14))} t={t} /> : <p className="text-[14px]" style={{ color: `${t.ink}80` }}>Analysis pending.</p>}
         </div>
       </div>
     </SlideFrame>

@@ -1,14 +1,13 @@
 import type { PageInfo, SlideProps } from "./bits";
-import { BarChart, PRINT_EXACT } from "./bits";
+import { BarChart, PRINT_EXACT, clip } from "./bits";
 import { SlideFrame } from "./slide-frame";
 import { lensIndex, ownershipSignal, stageBucket, stageMix } from "@/lib/metrics";
-import { truncateWords } from "@/lib/format";
 
 /** The fragmentation thesis: the argument (not duplicate stats) that this market
  *  is consolidatable. Lead with the claim, then prove it with the Fragmentation
  *  Index, the size/stage mix, and the two reads that matter: how sub-scale and how
  *  founder-owned the field is. All derived from the existing Report. */
-export function HighlightSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
+export function HighlightSlide({ report, firm, lens, full, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
   const cos = report.companies;
   const thesis = report.thesis;
@@ -29,8 +28,9 @@ export function HighlightSlide({ report, firm, lens, page }: SlideProps & { page
       page={page}
       note="Fragmentation is derived from the discovered set, not a market-share figure. The index is an illustrative composite."
     >
-      <p className="line-clamp-3 max-w-4xl text-[18px] font-semibold leading-snug" style={{ color: t.primary }}>
-        {truncateWords(
+      <p className="line-clamp-3 max-sm:line-clamp-none max-w-4xl text-[18px] font-semibold leading-snug" style={{ color: t.primary }}>
+        {clip(
+          full,
           thesis?.fragmentation ??
             `No single name dominates these ${cos.length} companies and no scaled consolidator exists; the field is sub-scale and built to roll up.`,
           30,

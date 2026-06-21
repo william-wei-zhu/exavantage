@@ -1,10 +1,10 @@
 import { ArrowUpRight } from "lucide-react";
 import type { Company } from "@/lib/types";
 import type { PageInfo, SlideProps } from "./bits";
-import { CompsTable, Favicon, TierBadge, evidenceLine } from "./bits";
+import { CompsTable, Favicon, TierBadge, evidenceLine, clip } from "./bits";
 import { SlideFrame } from "./slide-frame";
 import { quantCoverage } from "@/lib/metrics";
-import { truncateWords, urlForDomain } from "@/lib/format";
+import { urlForDomain } from "@/lib/format";
 
 /** Rows of the full-screen comps table per appendix slide (kept small so each
  *  appendix page fits the fixed 16:9 canvas without overflowing). */
@@ -21,7 +21,7 @@ export function appendixChunks(companies: Company[]): Company[][] {
 
 /** Priority targets: the Tier-1 "call now" shortlist with why-call, angle, and
  *  grounded evidence. The full universe lives on the appendix slide(s). */
-export function QuantSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
+export function QuantSlide({ report, firm, lens, full, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
   const thesis = report.thesis;
   const cov = quantCoverage(report.companies);
@@ -53,13 +53,13 @@ export function QuantSlide({ report, firm, lens, page }: SlideProps & { page?: P
                 </a>
                 <span className="ml-auto"><TierBadge tier={1} t={t} /></span>
               </div>
-              <p className="mt-2 line-clamp-2 text-[14px] leading-snug" style={{ color: `${t.ink}d0` }}>
-                <span className="font-semibold" style={{ color: t.primary }}>Why call: </span>{truncateWords(tg.whyCall, 18)}
+              <p className="mt-2 line-clamp-2 max-sm:line-clamp-none text-[14px] leading-snug" style={{ color: `${t.ink}d0` }}>
+                <span className="font-semibold" style={{ color: t.primary }}>Why call: </span>{clip(full, tg.whyCall, 18)}
               </p>
-              <p className="mt-1.5 line-clamp-1 text-[13px] leading-snug" style={{ color: `${t.ink}a0` }}>
-                <span className="font-semibold">Angle: </span>{truncateWords(tg.angle, 9)}
+              <p className="mt-1.5 line-clamp-1 max-sm:line-clamp-none text-[13px] leading-snug" style={{ color: `${t.ink}a0` }}>
+                <span className="font-semibold">Angle: </span>{clip(full, tg.angle, 9)}
               </p>
-              <p className="mt-1.5 truncate text-[11.5px] font-medium" style={{ color: `${t.ink}80` }}>Evidence: {evidenceLine(c)}</p>
+              <p className="mt-1.5 truncate max-sm:whitespace-normal max-sm:overflow-visible text-[11.5px] font-medium" style={{ color: `${t.ink}80` }}>Evidence: {evidenceLine(c)}</p>
             </div>
           ))
         ) : (

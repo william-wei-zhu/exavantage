@@ -1,10 +1,9 @@
 import type { PageInfo, SlideProps } from "./bits";
-import { Favicon, groupBySegment, PRINT_EXACT } from "./bits";
+import { Favicon, groupBySegment, PRINT_EXACT, clip } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords } from "@/lib/format";
 
 /** Where to win: sub-segments ranked by consolidation attractiveness, beachhead named. */
-export function MapSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
+export function MapSlide({ report, firm, lens, full, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
   const thesis = report.thesis;
   const groups = groupBySegment(report);
@@ -47,12 +46,12 @@ export function MapSlide({ report, firm, lens, page }: SlideProps & { page?: Pag
                 )}
                 <span className="ml-auto shrink-0 text-[13px] font-bold tabular-nums" style={{ color: c }}>{g.companies.length}</span>
               </div>
-              <p className="mt-2 line-clamp-6 text-[13px] font-medium leading-relaxed" style={{ color: `${t.ink}c8` }}>{truncateWords(r?.read ?? g.segment.blurb, 52)}</p>
+              <p className="mt-2 line-clamp-6 max-sm:line-clamp-none text-[13px] font-medium leading-relaxed" style={{ color: `${t.ink}c8` }}>{clip(full, r?.read ?? g.segment.blurb, 52)}</p>
               <ul className="mt-3 space-y-1">
                 {g.companies.slice(0, 4).map((co) => (
                   <li key={co.domain} className="flex items-center gap-2 text-[13px]">
                     <Favicon domain={co.domain} size={14} />
-                    <span className="truncate font-medium">{co.name}</span>
+                    <span className="truncate max-sm:whitespace-normal max-sm:overflow-visible font-medium">{co.name}</span>
                     {co.emerging && <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: t.accent, ...PRINT_EXACT }} />}
                   </li>
                 ))}

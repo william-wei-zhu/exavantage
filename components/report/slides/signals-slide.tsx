@@ -1,13 +1,13 @@
 import { ArrowUpRight } from "lucide-react";
 import type { PageInfo, SlideProps } from "./bits";
-import { Favicon, HeaderBand, PRINT_EXACT } from "./bits";
+import { Favicon, HeaderBand, PRINT_EXACT, clip } from "./bits";
 import { SlideFrame } from "./slide-frame";
-import { truncateWords, urlForDomain } from "@/lib/format";
+import { urlForDomain } from "@/lib/format";
 
 /** The Exa Vantage: proprietary, off-database sourcing. The names PitchBook and
  *  Sourcescrub never indexed mean fewer bidders, off-auction conversations, and
  *  lower entry multiples. */
-export function SignalsSlide({ report, firm, lens, page }: SlideProps & { page?: PageInfo }) {
+export function SignalsSlide({ report, firm, lens, full, page }: SlideProps & { page?: PageInfo }) {
   const t = firm.theme;
   const thesis = report.thesis;
   const offDatabase = report.companies.filter((c) => c.emerging).slice(0, 4);
@@ -32,7 +32,7 @@ export function SignalsSlide({ report, firm, lens, page }: SlideProps & { page?:
                   <span className="text-[14px] font-bold" style={{ fontFamily: t.headingFont }}>{c.name}</span>
                   <ArrowUpRight className="h-3 w-3 shrink-0" style={{ color: `${t.ink}70` }} />
                 </a>
-                <p className="line-clamp-2 text-[12.5px] leading-snug" style={{ color: `${t.ink}a8` }}>{truncateWords(c.oneLiner, 14)}</p>
+                <p className="line-clamp-2 max-sm:line-clamp-none text-[12.5px] leading-snug" style={{ color: `${t.ink}a8` }}>{clip(full, c.oneLiner, 14)}</p>
               </div>
             </div>
           ))

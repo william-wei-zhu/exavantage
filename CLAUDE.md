@@ -98,7 +98,15 @@ The Play (`synthesis-slide`, first calls with logos + risks + ask). Page count i
 Every slide is a **fixed 16:9 canvas** (`SLIDE_FRAME_CLASS` in `bits.tsx`): identical width/height,
 `overflow-hidden` (so content is curated/clamped to fit, not allowed to grow), and a strong aubergine
 ring. Print uses `@page { size: 1040px 585px landscape; margin: 0 }` (`globals.css`) so each slide is
-one identical full-bleed page. Real company logos use `CompanyLogo` (hi-res Google favicon tile);
+one identical full-bleed page. **On phones (`< 640px`) the frame relaxes to natural height and shows
+100% of its text — no truncation.** This is desktop-identical and mobile-only: the frame already drops
+to `max-sm:aspect-auto max-sm:min-h-[560px]`, and on top of that every clipping layer is disabled at
+`max-sm` — `overflow-hidden` → `max-sm:overflow-visible` (frame, content area, cover body); every
+`line-clamp-N`/`truncate` gets `max-sm:line-clamp-none` (or `max-sm:whitespace-normal`); and the
+JS word caps (`truncateWords`) are bypassed via the `clip(full, text, words)` helper in `bits.tsx`,
+where `full` is `useIsMobile()` (`components/report/use-is-mobile.ts`, effect-based so SSR/desktop see
+`false`) threaded into the slide `props` by `report-deck.tsx`. Desktop and print keep the fixed frame,
+clamps, and word caps unchanged. Real company logos use `CompanyLogo` (hi-res Google favicon tile);
 dense lists use `Favicon`. Other primitives in `bits.tsx` (`StatBox`, `HeaderBand`, `Checklist`,
 `CompsTable`, `Ribbon`, `ConvictionBadge`, `TierBadge`, `SourceChip`, `ConfidenceChip`,
 `evidenceLine`). `Deck` is a carousel (prev/next, dots, keyboard; print = one slide per page).
