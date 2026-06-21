@@ -137,4 +137,7 @@ export type StreamEvent =
   | { type: "analysis"; thesis: DealThesis }
   | { type: "summary"; executiveSummary: string }
   | { type: "done"; generatedAt: string; reportId?: string }
-  | { type: "error"; message: string };
+  | { type: "error"; message: string }
+  // Input is clearly not a company or sector (a person, gibberish): stop early
+  // with a friendly, on-brand nudge instead of building a nonsense deck.
+  | { type: "invalid"; message: string };

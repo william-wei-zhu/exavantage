@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Loader2, Search } from "lucide-react";
+import { ArrowRight, Check, Loader2, Search, SearchX } from "lucide-react";
 import { ReportDeck } from "./report-deck";
 import { BuildingDeck } from "./building-deck";
 import { Button } from "@/components/ui/button";
@@ -58,8 +58,17 @@ export function ReportExperience() {
     if (state.cachedId) router.push(`/r/${state.cachedId}`);
   }, [state.cachedId, router]);
 
+  // Rejected input: log how often junk queries hit the guard.
+  useEffect(() => {
+    if (state.status === "invalid") {
+      track("report_invalid_input", { firm: firm.id, query: state.query });
+    }
+  }, [state.status, state.query]);
+
   const busy = state.status === "loading";
-  const showInputs = state.status === "idle";
+  // Keep the search box + examples visible on the invalid state so the user can
+  // retype or pick an example without resetting.
+  const showInputs = state.status === "idle" || state.status === "invalid";
 
   const submit = (q: string) => {
     const query = q.trim();
@@ -112,6 +121,37 @@ export function ReportExperience() {
             </Button>
           </div>
         </form>
+
+        {state.status === "invalid" && (
+          <div className="rounded-xl border border-border bg-card px-5 py-5 sm:px-6 sm:py-6">
+            <div className="flex items-start gap-4">
+              <div
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                style={{ background: `${firm.theme.primary}12`, color: firm.theme.primary }}
+              >
+                <SearchX className="h-5 w-5" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="text-base font-semibold text-foreground">
+                  That doesn&apos;t look like a company.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {state.query ? (
+                    <>
+                      &ldquo;{state.query}&rdquo; isn&apos;t a company we can map. Enter a real
+                      company name to see its add-on universe, or pick one of the examples below.
+                    </>
+                  ) : (
+                    <>
+                      Enter a real company name to see its add-on universe, or pick one of the
+                      examples below.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showInputs && (
           <div className="flex flex-wrap items-center gap-2">

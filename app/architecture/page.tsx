@@ -128,6 +128,7 @@ const EVENTS: { name: string; when: string }[] = [
   { name: "analysis", when: "the deal thesis (recommendation, targets, risks, ask)" },
   { name: "summary", when: "the one-line executive summary" },
   { name: "done", when: "build complete: generatedAt + the saved report id" },
+  { name: "invalid", when: "the input is not a company or sector: stop early with a nudge" },
   { name: "progress / error", when: "phase updates throughout, or a graceful failure" },
 ];
 

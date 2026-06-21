@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import type { Company, DealThesis, MarketContext, Report, ReportMode, Segment, StreamEvent } from "./types";
 
-export type ReportStatus = "idle" | "loading" | "done" | "error";
+export type ReportStatus = "idle" | "loading" | "done" | "error" | "invalid";
 
 export type ReportState = {
   status: ReportStatus;
@@ -111,6 +111,8 @@ export function useReportStream() {
               };
             case "error":
               return { ...s, status: "error", error: e.message };
+            case "invalid":
+              return { ...s, status: "invalid", error: e.message || null };
             default:
               return s;
           }

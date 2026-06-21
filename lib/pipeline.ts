@@ -22,28 +22,36 @@ type Emit = (e: StreamEvent) => void | Promise<void>;
 const ROUTE_SCHEMA: Schema = {
   type: Type.OBJECT,
   properties: {
+    valid: { type: Type.BOOLEAN },
     mode: { type: Type.STRING, enum: ["company", "sector"] },
     companyName: { type: Type.STRING },
     companyDomain: { type: Type.STRING },
     sectorThesis: { type: Type.STRING },
+    reason: { type: Type.STRING },
   },
   // All required: Flash Lite reliably populates required fields but silently
   // drops optional ones. The unused fields are returned as "" and cleaned below.
-  required: ["mode", "companyName", "companyDomain", "sectorThesis"],
+  required: ["valid", "mode", "companyName", "companyDomain", "sectorThesis", "reason"],
 };
 
 type RawRoute = {
+  valid: boolean;
   mode: ReportMode;
   companyName: string;
   companyDomain: string;
   sectorThesis: string;
+  reason: string;
 };
 
 type Route = {
+  /** False when the input is clearly not a company or sector (a person, gibberish, etc.). */
+  valid: boolean;
   mode: ReportMode;
   companyName?: string;
   companyDomain?: string;
   sectorThesis?: string;
+  /** Short note on why the input was rejected (internal; UI copy is composed client-side). */
+  reason?: string;
 };
 
 /** Treat "", "null", "n/a", "none" (any case) as an absent value. */
@@ -55,9 +63,10 @@ function clean(v: string | undefined): string | undefined {
 
 /**
  * Classify the single input as a specific company (company mode) or a sector
- * thesis (sector mode). In company mode, resolve the official website domain so
- * findSimilar has a seed: Gemini first (free), then an Exa lookup as fallback so
- * a missing/invalid domain never collapses the report to a flat name search.
+ * thesis (sector mode), and judge whether it is a valid research subject at all.
+ * In company mode, resolve the official website domain so findSimilar has a seed:
+ * Gemini first (free), then an Exa lookup as fallback so a missing/invalid domain
+ * never collapses the report to a flat name search.
  */
 async function routeInput(query: string): Promise<Route> {
   const raw = await generateJSON<RawRoute>({
@@ -65,14 +74,23 @@ async function routeInput(query: string): Promise<Route> {
 
 Input: "${query}"
 
+First decide if the input is even a valid research subject. Set valid=false ONLY when the input is clearly NOT a company or an industry: a person's name or a public figure (e.g. "William Zhu", "Taylor Swift"), random gibberish (e.g. "asdfqwer"), or an unrelated phrase. When valid=false, set reason to a short plain-English note (e.g. "looks like a personal name") and leave the other fields "".
+Be generous: if the text could plausibly be a company or brand name, even one you do not recognize (e.g. a local "Peter and Chen restaurant chain") or a known brand styled like a name (e.g. "J Crew"), set valid=true. A coherent industry, sector, theme, or market category is also valid. When in doubt, prefer valid=true.
+
+When valid=true, also route it:
 If it names ONE specific company: set mode="company", companyName to the official name, companyDomain to its primary website domain as a bare host (e.g. "stripe.com"), and sectorThesis to "".
 If it is a sector, theme, thesis, or category (not a single company): set mode="sector", sectorThesis to a clean restatement of the thesis, and companyName and companyDomain to "".
 Always fill every field (use "" where not applicable). Only output the JSON.`,
     schema: ROUTE_SCHEMA,
     system:
-      "You route financial-research queries. Be decisive. A single recognizable company name → company mode with its real domain. Anything broader → sector mode.",
+      "You route financial-research queries. Be decisive. Reject only inputs that are clearly not a company or industry (a person, gibberish); when unsure, accept. A single recognizable company name → company mode with its real domain. Anything broader → sector mode.",
     temperature: 0,
   });
+
+  // Gate clearly-invalid inputs before any Exa work (e.g. domain resolution below).
+  if (raw.valid === false) {
+    return { valid: false, mode: "company", reason: clean(raw.reason) };
+  }
 
   const mode: ReportMode = raw.mode === "company" ? "company" : "sector";
   const companyName = clean(raw.companyName) || (mode === "company" ? query : undefined);
@@ -88,6 +106,7 @@ Always fill every field (use "" where not applicable). Only output the JSON.`,
   }
 
   return {
+    valid: true,
     mode,
     companyName,
     companyDomain,
@@ -617,6 +636,17 @@ export async function streamReport(
   emit: Emit,
   opts: { firmId?: string; fresh?: boolean; replaceId?: string } = {},
 ): Promise<void> {
+  // Validity + routing first: judge whether the input is even a company/sector
+  // before any cache lookup or Exa work, so a clearly-invalid input (a person's
+  // name, gibberish) stops in ~1s with an elegant message and never builds or
+  // re-serves a junk deck from the cache.
+  await emit({ type: "progress", phase: "Routing your request" });
+  const route = await routeInput(query);
+  if (!route.valid) {
+    await emit({ type: "invalid", message: route.reason ?? "" });
+    return;
+  }
+
   // Generation cache: if a deck for this exact input already exists, open it
   // instantly instead of re-running the ~100s pipeline. "Regenerate" sets `fresh`
   // to skip the cache and rebuild from scratch.
@@ -628,9 +658,6 @@ export async function streamReport(
       return;
     }
   }
-
-  await emit({ type: "progress", phase: "Routing your request" });
-  const route = await routeInput(query);
 
   // Company-only desk: always present as a platform-anchored add-on map. When we
   // can't resolve a single company (e.g. the user typed a sector), we still run a

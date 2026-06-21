@@ -21,6 +21,17 @@ lens). **Company-only input with a soft guard**: always company-mode discovery; 
 resolves, it nudges and still returns a best-effort set (never errors). KKR brand tokens in
 `lib/firms.ts`; the official logo is `public/logos/kkr.svg`.
 
+**Validity gate (the one hard stop):** `routeInput` (`lib/pipeline.ts`) also returns a `valid`
+flag judged in the *same* first Gemini call (zero added cost/latency). `streamReport` checks it
+**before the caches and any Exa work**: a clearly-invalid input (a personal name, public figure,
+gibberish) emits a single `invalid` event and stops in ~1s, so junk never builds a deck or
+re-serves a cached one. The gate is deliberately high-precision: it rejects only obvious
+non-companies and accepts any plausible brand, even unrecognized/local ones (e.g. "J Crew",
+"Peter and Chen restaurant chain") and any coherent sector. The client (`use-report-stream.ts`)
+maps `invalid` to a `"invalid"` status; `report-experience.tsx` shows an elegant on-brand card
+(aubergine, no red, no left-border bar) that keeps the search box + the six example chips so the
+user can retype or pick one. The generic red `destructive` box stays for true technical errors.
+
 ## Pipeline (`lib/pipeline.ts`)
 
 Monolithic Next.js 16 on Vercel; "backend" = route handlers; Google Cloud provides Gemini + Firestore.
@@ -56,8 +67,8 @@ Key files:
 
 **Streaming protocol** (`StreamEvent` in `lib/types.ts`): NDJSON, one JSON object per line. Emit
 order: `meta` → `segments` → `company` (one per surviving company) → `emerging` → `market` →
-`analysis` → `summary` → `done`; plus `cached` (cache hit, then end), and `progress` / `error`
-throughout. The route (`app/api/report/stream/route.ts`) is the expensive one: per-IP rate limit
+`analysis` → `summary` → `done`; plus `cached` (cache hit, then end), `invalid` (input is not a
+company/sector; emitted right after routing, then end), and `progress` / `error` throughout. The route (`app/api/report/stream/route.ts`) is the expensive one: per-IP rate limit
 (4/min, 40/day, fail-closed via `lib/ratelimit.ts`) + global budget kill switch (`lib/budget.ts`),
 then a `ReadableStream`. Client consumes via `lib/use-report-stream.ts`; progress bar in
 `components/building-deck.tsx`. The full step-by-step lifecycle (with diagrams) lives on the
