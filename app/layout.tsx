@@ -24,12 +24,12 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "sw
 
 const FIRM_FONT_VARS = [hanken.variable, inter.variable].join(" ");
 
-const TAGLINE = "Your vantage point on every market.";
+const TAGLINE = "Your vantage on every deal.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://exavantage.com"),
   title: {
-    default: "Exa Vantage · Your vantage point on every market",
+    default: "Exa Vantage · Your vantage on every deal",
     template: "%s · Exa Vantage",
   },
   description: TAGLINE,
