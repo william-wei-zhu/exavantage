@@ -83,6 +83,17 @@ One Gemini pass turns the discovered set into a partner-grade recommendation, pe
 `sequencing`, `ask`, and per-slide `takeaways` (the action-title headlines). `MarketContext` carries
 the cited `stat` + `sourceUrl` + `confidence` ("research firm" | "secondary").
 
+**Conviction is derived, not a free model choice.** It used to default to "High" for every input
+(bare enum + a "Be decisive" system prompt + temperature 0). Now `convictionSignal` (`lib/metrics.ts`)
+scores the discovered set on opportunity (Fragmentation Index, segment breadth, target depth),
+sellability/edge (founder-owned share, off-database %), and evidence (quant coverage + market-stat
+strength), then bands it conservatively so **High requires a real opportunity AND real evidence** —
+a thin or incoherent set (e.g. a non-company that still returns some pages) lands Medium/Exploratory.
+`analyzeOpportunity` injects the computed band + its `basis` into the prompt so the recommendation,
+why-now, risks, ask, and takeaways are written to match it, then overrides `thesis.conviction` with
+the computed value as a safety net. The system prompt was retoned from "Be decisive" to calibrated
+honesty.
+
 ## The slides (`components/report/slides/*`, `report-deck.tsx`)
 
 Insight-first, each leading with an **action-title headline** (the takeaway) and a small category
@@ -139,7 +150,8 @@ with a "Deck ready" cue. Reports save server-side at stream end; `/r/[id]` rende
 No invented revenue, valuations, multiples, growth rates, or market shares. The market stat is
 Exa-cited with a confidence label (or omitted); per-company quant is estimated-from-web and labeled,
 blank when unknown; `ownershipSignal` and the indices are derived and labeled illustrative; the
-recommendation is framed as analyst judgment.
+recommendation is framed as analyst judgment, and `conviction` is an objective derived band
+(`convictionSignal`), so a thin set reads honestly as Medium/Exploratory instead of a default High.
 
 **No saturated/too-clean optics.** `lensIndex` (`lib/metrics.ts`) is weighted/capped at **94** so a
 maxed set lands high-but-believable, never a flat 100. On the Fragmentation slide

@@ -11,6 +11,7 @@ import {
   type SearchHit,
 } from "./exa";
 import { generateJSON, Type, type Schema } from "./gemini";
+import { convictionSignal } from "./metrics";
 import { mapLimit, brandNameFromDomain, isValidDomain, normalizeDomain } from "./format";
 import { findExistingReport, saveReport } from "./store";
 import type { Company, DealThesis, MarketContext, Report, ReportMode, Segment, StreamEvent } from "./types";
@@ -584,10 +585,16 @@ async function analyzeOpportunity(
     ? `\nThe platform's actual capabilities (use these to make value levers specific): ${seedContext.slice(0, 400)}`
     : "";
 
-  return generateJSON<DealThesis>({
+  // Objective, derived conviction from the discovered set (not a free model
+  // choice). It is injected as a hard constraint below and overridden on return,
+  // so the badge and the whole argument stay calibrated to the actual evidence.
+  const conv = convictionSignal(companies, segments, market);
+  const convictionLine = `\nOBJECTIVE CONVICTION READ (computed from the set; do NOT change it): conviction = ${conv.level}. Basis: ${conv.basis}.`;
+
+  const thesis = await generateJSON<DealThesis>({
     prompt: `Build the buy-and-build (roll-up) thesis for ${
       mode === "company" ? `the platform "${query}"` : `the consolidation thesis "${query}"`
-    }.${marketLine}${anchorLine}
+    }.${marketLine}${anchorLine}${convictionLine}
 
 Sub-segments:
 ${segBlock}
@@ -596,11 +603,11 @@ Discovered targets:
 ${coBlock}
 
 Produce a structured recommendation. Rules:
-- Base every claim ONLY on the targets / segments / market above. NEVER invent revenue, valuations, multiples, growth rates, or market-share percentages. Recommendation and conviction are your judgment.
+- Base every claim ONLY on the targets / segments / market above. NEVER invent revenue, valuations, multiples, growth rates, or market-share percentages. The recommendation is your judgment; the conviction is the objective read provided above and must be used as given.
 - NUMBERS: use compact notation only ($150B, not "150 billion dollar"). Any market-size figure must be the EXACT cited stat string above, or omitted. No other dollar figures.
 - LENGTH IS A HARD CONSTRAINT: these render on fixed-size slides, so every field MUST stay within its stated word cap. Write tight, complete thoughts; never trail off. If you cannot fit it, cut detail, do not exceed the cap.
-- "recommendation": ONE punchy sentence, max 20 words. State the NON-OBVIOUS wedge (the specific consolidation insight, e.g. which sub-scale point-solutions the platform cross-sells into), not the generic category.
-- "conviction": High, Medium, or Exploratory.
+- "recommendation": ONE sentence, max 20 words, MATCHED to the conviction below. State the NON-OBVIOUS wedge (the specific consolidation insight, e.g. which sub-scale point-solutions the platform cross-sells into), not the generic category. Do not oversell a Medium / Exploratory call.
+- "conviction": MUST equal "${conv.level}" (the objective read above). Make the recommendation, whyNow, fragmentation, risks, ask, and takeaways CONSISTENT with it: High = a genuinely attractive, consolidatable platform, back the build now; Medium = real but unproven, frame as "pursue with diligence" and name what must be validated; Exploratory = thin or speculative evidence, frame as an exploratory screen, lead with what is missing, do not present it as a clear buy.
 - "whyNow": exactly 3 grounded catalysts / tailwinds (founder succession, technology forcing scale, end-market demand), each a complete thought, max 12 words each. Briefly note if other consolidators are already active.
 - "fragmentation": one evidence sentence from the SET (no single name dominates these N; no scaled consolidator; many sub-scale / founder-owned), max 24 words.
 - "segmentReads": for EACH sub-segment above, a one-line consolidation "read" (max 12 words) and a "rank" (1 = most attractive to start).
@@ -617,10 +624,14 @@ Produce a structured recommendation. Rules:
 Only output the JSON.`,
     schema: DEAL_THESIS_SCHEMA,
     system:
-      "You are a KKR private-equity deal-origination partner writing a sourcing recommendation for the investment committee. Be decisive, specific, and grounded only in the provided data. Never fabricate financial figures; frame the recommendation as analyst judgment. Do not use em-dashes.",
+      "You are a KKR private-equity deal-origination partner writing a sourcing recommendation for the investment committee. Be specific, calibrated, and intellectually honest, grounded only in the provided data. Reserve strong conviction for genuinely strong sets; many screens are honestly Medium or Exploratory, and saying so plainly is correct, not a weakness. Never fabricate financial figures; frame the recommendation as analyst judgment. Do not use em-dashes.",
     // Greedy decoding (with the fixed seed) for run-to-run consistency.
     temperature: 0,
   });
+
+  // Safety net: the badge and argument are calibrated to the objective read even
+  // if the model drifts from the injected conviction.
+  return { ...thesis, conviction: conv.level };
 }
 
 // ---- the unified pipeline ----

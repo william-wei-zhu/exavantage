@@ -1,4 +1,4 @@
-import type { Company, Report } from "./types";
+import type { Company, MarketContext, Report, Segment } from "./types";
 import type { LensId } from "./firms";
 
 // Derived analytics over a report's companies. Pure functions, no fabrication:
@@ -178,4 +178,80 @@ export function visibleColumns(companies: Company[]): {
     employees: ok(cov((c) => Boolean(c.employees))),
     region: ok(cov((c) => Boolean(c.region))),
   };
+}
+
+export type ConvictionLevel = "High" | "Medium" | "Exploratory";
+export type ConvictionSignal = {
+  level: ConvictionLevel;
+  /** Composite 0-100 (illustrative, not a market figure). */
+  score: number;
+  /** The 2-4 most salient positives + limiters, for steering the thesis prose. */
+  drivers: string[];
+  /** One-line summary of `drivers`, injected into the thesis prompt. */
+  basis: string;
+};
+
+/**
+ * Objective, derived conviction for the roll-up thesis (replaces a free model
+ * choice that defaulted to "High" for every input). Scores the discovered set on
+ * three axes and bands it conservatively, so "High" requires a real opportunity
+ * AND real evidence — a thin or incoherent set (e.g. a non-company input that
+ * still returns some pages) lands Medium/Exploratory. Pure + illustrative; the
+ * weights/thresholds are tunable. Drives the badge and the thesis tone.
+ */
+export function convictionSignal(
+  companies: Company[],
+  segments: Segment[],
+  market: MarketContext | undefined,
+): ConvictionSignal {
+  const n = companies.length;
+  const segCount = segments.length;
+  // Reuse the existing derived metrics on a minimal report (they read only these
+  // three fields), so conviction stays consistent with the rest of the deck.
+  const r = { companies, segments, marketContext: market } as Report;
+  const frag = lensIndex("buyout", r).score; // 0-94
+  const offDb = exaEdge(r).pct / 100; // 0-1
+
+  const sellable = n
+    ? companies.filter((c) => ["Founder-owned", "Independent"].includes(ownershipSignal(c))).length / n
+    : 0;
+  const ratio = (pred: (c: Company) => boolean) => (n ? companies.filter(pred).length / n : 0);
+  const covAvg =
+    (ratio((c) => Boolean(c.foundedYear)) +
+      ratio((c) => Boolean(c.funding)) +
+      ratio((c) => Boolean(c.employees))) /
+    3;
+  const marketStrength = market ? (market.confidence === "research firm" ? 1 : 0.5) : 0;
+
+  // Opportunity (0-45) + sellability/edge (0-20) + evidence/confidence (0-35).
+  const opportunity = (frag / 94) * 20 + (Math.min(segCount, 5) / 5) * 10 + (Math.min(n, 12) / 12) * 15;
+  const quality = sellable * 12 + offDb * 8;
+  const evidence = covAvg * 20 + marketStrength * 15;
+  const score = Math.round(opportunity + quality + evidence);
+
+  const hasMarket = marketStrength > 0;
+  let level: ConvictionLevel;
+  if (score >= 68 && hasMarket && covAvg >= 0.45 && n >= 8 && segCount >= 3 && frag >= 60) {
+    level = "High";
+  } else if (score >= 45 && n >= 5 && segCount >= 2) {
+    level = "Medium";
+  } else {
+    level = "Exploratory";
+  }
+
+  // Salient positives and limiters, strongest first, to ground the thesis prose.
+  const pos: string[] = [];
+  if (n >= 8) pos.push(`${n} qualified targets across ${segCount} sub-segments`);
+  if (frag >= 60) pos.push(`high fragmentation (index ${frag})`);
+  if (sellable >= 0.4) pos.push(`${Math.round(sellable * 100)}% founder-owned / independent`);
+  if (offDb >= 0.25) pos.push(`${Math.round(offDb * 100)}% off-database`);
+  const neg: string[] = [];
+  if (n < 8) neg.push(`only ${n} qualified targets`);
+  if (segCount < 3) neg.push(`only ${segCount} sub-segment${segCount === 1 ? "" : "s"}`);
+  if (!hasMarket) neg.push("no cited market size");
+  if (covAvg < 0.45) neg.push(`thin data coverage (${Math.round(covAvg * 100)}%)`);
+
+  const drivers = [...pos.slice(0, 2), ...neg.slice(0, 2)];
+  const basis = drivers.length ? drivers.join("; ") : `${n} targets, ${segCount} sub-segments`;
+  return { level, score, drivers, basis };
 }

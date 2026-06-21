@@ -241,7 +241,7 @@ export default function ArchitecturePage() {
               lead="A market stat and a strategic thesis turn the set into a recommendation, then the deck is saved as a shareable link."
               steps={[
                 { call: "Exa + Gemini", text: <><code>fetchMarketContext()</code> searches the sector (not the company), ranks credible sources first, and extracts one stat whose source URL must match a retrieved page, or omits it. Emits <code>market</code>.</> },
-                { call: "Gemini", text: <><code>analyzeOpportunity()</code> writes the <code>DealThesis</code>: recommendation, conviction, why-now, tiered targets, value levers, risks, the ask, and a per-slide takeaway. Emits <code>analysis</code> then <code>summary</code>.</> },
+                { call: "Gemini", text: <><code>analyzeOpportunity()</code> writes the <code>DealThesis</code>: recommendation, conviction, why-now, tiered targets, value levers, risks, the ask, and a per-slide takeaway. Conviction is a derived, calibrated band (<code>convictionSignal()</code>) computed from the set, not a free model choice, and the argument is written to match it. Emits <code>analysis</code> then <code>summary</code>.</> },
                 { call: "Firestore", text: <><code>saveReport()</code> persists the deck with cache keys; Regenerate overwrites the same <code>/r/[id]</code> so share links stay valid. Emits <code>done</code>.</> },
               ]}
             />

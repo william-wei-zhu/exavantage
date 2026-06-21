@@ -64,6 +64,8 @@ export type MarketContext = {
 export type DealThesis = {
   /** One-sentence verdict / recommendation. */
   recommendation: string;
+  /** Derived, calibrated conviction band (`convictionSignal` in lib/metrics.ts),
+   *  not a free model choice; the whole thesis tone is written to match it. */
   conviction: "High" | "Medium" | "Exploratory";
   /** 2-3 catalysts / tailwinds for "why now". */
   whyNow: string[];
