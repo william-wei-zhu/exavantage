@@ -198,11 +198,12 @@ export default function ArchitecturePage() {
             />
             <Phase
               num="02"
-              title="Route"
-              lead="Gemini decides what you typed and resolves it to a real company, with a cache shortcut on both ends."
+              title="Route + junk-name filter"
+              lead="Gemini decides what you typed, screens out non-companies, and resolves the rest to a real company, with a cache shortcut on both ends."
               steps={[
-                { call: "cache", text: <>Before anything, a Firestore lookup by normalized input returns a saved deck instantly (unless you hit Regenerate). A second check runs after the name resolves, to catch alternate phrasings.</> },
-                { call: "Gemini", text: <><code>routeInput()</code> classifies company vs sector and resolves the official name + domain; Exa search is the fallback when the model has no reliable domain. Emits <code>meta</code>.</> },
+                { call: "Gemini", text: <><code>routeInput()</code> first judges whether the input is a real research subject at all. A clearly non-company input (a personal name, a public figure, gibberish) is rejected here, before any cache or Exa work, emitting <code>invalid</code> so junk stops in ~1s instead of building a deck. The filter is high-precision: it accepts any plausible brand, even unrecognized or chef-named ones (e.g. Peter Chang), and any coherent sector.</> },
+                { call: "Gemini", text: <>For valid inputs the same pass classifies company vs sector and resolves the official name + domain; Exa search is the fallback when the model has no reliable domain. Emits <code>meta</code>.</> },
+                { call: "cache", text: <>A Firestore lookup by normalized input then returns a saved deck instantly (unless you hit Regenerate). A second check runs after the name resolves, to catch alternate phrasings.</> },
               ]}
             />
             <Phase

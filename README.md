@@ -57,8 +57,14 @@ One streaming request handler (`app/api/report/stream/route.ts` → `streamRepor
 
 1. **Ingest.** `GET /api/report/stream` validates the query, enforces a per-IP rate limit (4/min,
    40/day, fail-closed) and a global budget kill switch, then opens an NDJSON stream.
-2. **Route.** A Gemini pass classifies company vs sector and resolves the official name + domain
-   (Exa search fallback). A Firestore cache lookup short-circuits known inputs. Emits `meta`.
+2. **Route + junk-name filter.** A Gemini pass classifies company vs sector and resolves the official
+   name + domain (Exa search fallback). The *same* pass also judges whether the input is a real
+   research subject at all: a clearly non-company input (a personal name, a public figure, gibberish)
+   is rejected here, before any cache or Exa work, so junk stops in ~1s with an `invalid` event
+   instead of burning a full build. The filter is high-precision: it accepts any plausible brand,
+   even unrecognized or chef-named ones (e.g. "J Crew", "Peter Chang"), and any coherent sector,
+   rejecting only the obvious nonsense. A Firestore cache lookup then short-circuits known good
+   inputs. Emits `meta` (or `invalid`).
 3. **Discover (two-pass).** `findSimilar` off the seed domain and a semantic `search` run in parallel
    and are merged + deduped (see Two-pass discovery above). The market-size search starts here too, to
    overlap its latency.
@@ -83,9 +89,11 @@ Full walkthrough with diagrams: **[exavantage.com/architecture](https://exavanta
 ### Streaming protocol
 
 NDJSON, one JSON object per line. Event types in emit order: `meta`, `cached`, `segments`, `company`
-(one each), `emerging`, `market`, `analysis`, `summary`, `done`, plus `progress` / `error` throughout.
-The client (`lib/use-report-stream.ts`) applies each event as it arrives, so the deck assembles live
-behind a build-progress view.
+(one each), `emerging`, `market`, `analysis`, `summary`, `done`, plus `invalid` (junk-name filter
+rejected the input, then end) and `progress` / `error` throughout. The client
+(`lib/use-report-stream.ts`) applies each event as it arrives, so the deck assembles live behind a
+build-progress view; `invalid` instead shows an elegant nudge that keeps the search box and example
+chips.
 
 ### Determinism & honesty
 

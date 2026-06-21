@@ -128,6 +128,32 @@ export async function deleteAllReports(): Promise<number> {
   return total;
 }
 
+/** Every saved report (paged). Used by maintenance scripts; [] without Firestore. */
+export async function getAllReports(): Promise<StoredReport[]> {
+  const fs = db();
+  if (!fs) return [];
+  const out: StoredReport[] = [];
+  let cursor: FirebaseFirestore.QueryDocumentSnapshot | null = null;
+  for (;;) {
+    let q = fs.collection(COLLECTION).orderBy("createdAt").limit(300);
+    if (cursor) q = q.startAfter(cursor);
+    const snap = await q.get();
+    if (snap.empty) break;
+    snap.docs.forEach((d) => out.push(d.data() as StoredReport));
+    cursor = snap.docs[snap.docs.length - 1];
+    if (snap.size < 300) break;
+  }
+  return out;
+}
+
+/** Delete one report by id. Safe no-op without Firestore. */
+export async function deleteReport(id: string): Promise<void> {
+  const fs = db();
+  if (!fs) return;
+  if (!/^[a-z0-9]{8,32}$/i.test(id)) return;
+  await fs.collection(COLLECTION).doc(id).delete();
+}
+
 /** Load a saved report by id, or null if missing / Firestore unavailable. */
 export async function getReport(id: string): Promise<StoredReport | null> {
   const fs = db();

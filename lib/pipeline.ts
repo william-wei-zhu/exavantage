@@ -68,14 +68,14 @@ function clean(v: string | undefined): string | undefined {
  * Gemini first (free), then an Exa lookup as fallback so a missing/invalid domain
  * never collapses the report to a flat name search.
  */
-async function routeInput(query: string): Promise<Route> {
+export async function routeInput(query: string): Promise<Route> {
   const raw = await generateJSON<RawRoute>({
     prompt: `Classify this market-research input and resolve it.
 
 Input: "${query}"
 
 First decide if the input is even a valid research subject. Set valid=false ONLY when the input is clearly NOT a company or an industry: a person's name or a public figure (e.g. "William Zhu", "Taylor Swift"), random gibberish (e.g. "asdfqwer"), or an unrelated phrase. When valid=false, set reason to a short plain-English note (e.g. "looks like a personal name") and leave the other fields "".
-Be generous: if the text could plausibly be a company or brand name, even one you do not recognize (e.g. a local "Peter and Chen restaurant chain") or a known brand styled like a name (e.g. "J Crew"), set valid=true. A coherent industry, sector, theme, or market category is also valid. When in doubt, prefer valid=true.
+Be generous: if the text could plausibly be a company or brand name, set valid=true even when it looks like a person's name or you do not recognize it. Many real brands are named after a founder or chef (e.g. "Peter Chang", "J Crew", "Tommy Bahama"), and obscure or local businesses still count. A coherent industry, sector, theme, or market category is also valid. When in doubt, prefer valid=true; reject only an input that is clearly a person with no business behind it, gibberish, or an unrelated phrase.
 
 When valid=true, also route it:
 If it names ONE specific company: set mode="company", companyName to the official name, companyDomain to its primary website domain as a bare host (e.g. "stripe.com"), and sectorThesis to "".

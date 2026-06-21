@@ -34,7 +34,7 @@ type Stage = {
 
 const STAGES: Stage[] = [
   { n: 1, calls: ["infra"], title: "Ingest", sub: "GET /api/report/stream · validate · rate limit · budget", stream: "opens NDJSON" },
-  { n: 2, calls: ["gemini"], title: "Route input", sub: "company vs sector · resolve the domain", stream: "meta" },
+  { n: 2, calls: ["gemini"], title: "Route + junk-name filter", sub: "company vs sector · resolve the domain · reject non-companies", stream: "meta | invalid" },
   { n: 3, calls: ["exa", "exa"], title: "Discover (two-pass)", sub: "findSimilar + semantic search, merged", stream: "" },
   { n: 4, calls: ["gemini"], title: "Relevance + independence gates", sub: "drop name-collisions and parent-owned sub-brands", stream: "" },
   { n: 5, calls: ["agent"], title: "Emerging discovery", sub: "Exa Agent deep research for the long tail", stream: "" },

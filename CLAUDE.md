@@ -26,8 +26,8 @@ flag judged in the *same* first Gemini call (zero added cost/latency). `streamRe
 **before the caches and any Exa work**: a clearly-invalid input (a personal name, public figure,
 gibberish) emits a single `invalid` event and stops in ~1s, so junk never builds a deck or
 re-serves a cached one. The gate is deliberately high-precision: it rejects only obvious
-non-companies and accepts any plausible brand, even unrecognized/local ones (e.g. "J Crew",
-"Peter and Chen restaurant chain") and any coherent sector. The client (`use-report-stream.ts`)
+non-companies and accepts any plausible brand, even unrecognized/local or chef-named ones (e.g.
+"J Crew", "Peter Chang") and any coherent sector. The client (`use-report-stream.ts`)
 maps `invalid` to a `"invalid"` status; `report-experience.tsx` shows an elegant on-brand card
 (aubergine, no red, no left-border bar) that keeps the search box + the six example chips so the
 user can retype or pick one. The generic red `destructive` box stays for true technical errors.
