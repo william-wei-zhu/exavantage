@@ -211,7 +211,7 @@ export default function ArchitecturePage() {
               title="Discover"
               lead="Two Exa calls, run in parallel, build the candidate universe so we never over-index on a brand token."
               steps={[
-                { call: "Exa contents", text: <><code>fetchSiteContent()</code> reads the anchor's own site to ground everything in what it actually does.</> },
+                { call: "Exa contents", text: <><code>fetchSiteContent()</code> reads the anchor&apos;s own site to ground everything in what it actually does.</> },
                 { call: "Exa ×2", text: <><code>findSimilar</code> off the seed domain and a semantic <code>search</code> run together; <code>mergeHits()</code> dedupes them. The market-size search is also kicked off here to overlap its latency.</> },
               ]}
             />
@@ -221,7 +221,7 @@ export default function ArchitecturePage() {
               lead="Two Gemini gates keep only companies that are both genuinely relevant and actually acquirable."
               steps={[
                 { call: "Gemini", text: <><code>filterRelevant()</code> drops name-collisions (the &ldquo;Exa&rdquo; vs &ldquo;Exaforce&rdquo; problem), judging by what each company does.</> },
-                { call: "Gemini", text: <><code>filterIndependent()</code> is the first independence layer: it drops sub-brands of a larger parent and the anchor's own subsidiaries, using model world knowledge. Both gates fall back to keeping the set if they would over-filter.</> },
+                { call: "Gemini", text: <><code>filterIndependent()</code> is the first independence layer: it drops sub-brands of a larger parent and the anchor&apos;s own subsidiaries, using model world knowledge. Both gates fall back to keeping the set if they would over-filter.</> },
               ]}
             />
             <Phase
@@ -259,7 +259,7 @@ export default function ArchitecturePage() {
               <p className="mt-2 text-[15px] leading-relaxed text-foreground/80">
                 <code>findSimilar</code> works off the seed domain and is strong on established lookalikes;
                 the Exa Agent works off the thesis and reaches recently founded names embeddings have not
-                caught up to. They are complementary, and the Agent's hits are deduped against the
+                caught up to. They are complementary, and the Agent&apos;s hits are deduped against the
                 findSimilar set so it only ever adds the long tail.
               </p>
             </Reveal>
@@ -270,7 +270,7 @@ export default function ArchitecturePage() {
               <h3 className="mt-5 font-heading text-xl font-bold">The independence gate, twice</h3>
               <p className="mt-2 text-[15px] leading-relaxed text-foreground/80">
                 A roll-up target has to be a company you can actually buy. Gate one drops known sub-brands
-                up front using model world knowledge; gate two re-checks each company's fetched text for a
+                up front using model world knowledge; gate two re-checks each company&apos;s fetched text for a
                 parent or owner and drops any that slipped through, before they reach the deck.
               </p>
             </Reveal>
@@ -286,7 +286,7 @@ export default function ArchitecturePage() {
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <CrossCard icon={<Repeat2 className="size-5" strokeWidth={1.8} />} title="Determinism">
               Every Gemini call runs at <code>temperature: 0</code> with a fixed seed, so the same input
-              yields the same deck. The only run-to-run drift comes from Exa's live web results, which are
+              yields the same deck. The only run-to-run drift comes from Exa&apos;s live web results, which are
               not cached.
             </CrossCard>
             <CrossCard icon={<ShieldCheck className="size-5" strokeWidth={1.8} />} title="Prompt-injection defense">
