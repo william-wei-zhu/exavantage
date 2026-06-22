@@ -153,6 +153,7 @@ export default function AboutPage() {
                 <li>· The independence gate runs twice: a Gemini pass drops known sub-brands up front, then per-company Exa text is re-checked for a parent/owner, dropping any that slipped through before they reach the deck.</li>
                 <li>· The market stat is sector-scoped and Exa-cited (a single company&apos;s ARR is rejected) with a confidence label.</li>
                 <li>· Quant is evidence-only and labeled estimated, blank when unknown. No invented revenue, multiples, or market shares.</li>
+                <li>· Conviction is a derived, calibrated band, not a default: scored from the set&apos;s opportunity, edge, and evidence, so a thin set reads honestly as Medium/Exploratory instead of a default High.</li>
                 <li>· The deck streams behind a gated build view and reveals on done, so you never see half-built numbers.</li>
               </ul>
             </div>

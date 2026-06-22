@@ -50,6 +50,9 @@ Each slide leads with an action-title conclusion (the takeaway), MBB/PE style:
 Plus a **Full Universe** appendix: the entire discovered company set in a paginated table, so the
 deck's page count scales with the universe.
 
+The deck is a fixed 16:9 canvas on desktop and in PDF; on phones it reflows to natural height and
+shows every line in full.
+
 ## Backend architecture (step by step)
 
 One streaming request handler (`app/api/report/stream/route.ts` → `streamReport` in
@@ -101,7 +104,9 @@ Every Gemini call runs at `temperature: 0` with a fixed seed, so the same input 
 only Exa's live web results vary. All web text is wrapped in `<UNTRUSTED_CONTENT>` with a
 prompt-injection guard. No invented financials: quant is evidence-only and blank when unknown, the
 market stat is cited or omitted, the fragmentation index is capped, and every company links to its
-live site.
+live site. Conviction itself is derived (`convictionSignal`), scored from the set's opportunity,
+edge, and evidence rather than asserted, so a thin set reads honestly as Medium/Exploratory rather
+than a default High.
 
 ### Guardrails
 
